@@ -1,0 +1,418 @@
+/* ===== Global ===== */
+html,
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: url('images/Lucid_Origin_A_sleek_professional_world_map_vector_illustratio_2.jpg')
+    no-repeat center center fixed;
+  background-size: cover;
+}
+
+/* ===== Layout ===== */
+.homepage-business-page {
+  margin-top: 25px;
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
+
+  display: grid;
+  grid-template-columns: 260px 1fr 260px;
+  grid-template-rows: auto 1fr;
+  gap: 25px;
+
+  padding: 0 16px;
+}
+
+/* ===== Glass Cards ===== */
+.card,
+.top-left,
+.top-center,
+.top-right {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(3px);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ===== Top Row ===== */
+.top-left,
+.top-center,
+.top-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.top-left {
+  grid-column: 1;
+}
+
+.top-center {
+  grid-column: 2;
+}
+
+.top-right {
+  grid-column: 3;
+  position: relative;
+  z-index: 1000;
+}
+
+/* ===== Content Row (Row 2) ===== */
+.sidebar-left {
+  grid-column: 1;
+}
+
+.main-feed {
+  grid-column: 2;
+  /* Ensure it doesn't overflow */
+  min-width: 0;
+}
+
+.sidebar-right {
+  grid-column: 3;
+}
+
+/* Logo */
+.sidebar-logo {
+  max-width: 100%;
+}
+
+/* Main heading */
+.main-heading {
+  margin: 0;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* ===== Vertical stack utility ===== */
+.vertical-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* 🔥 controls spacing between buttons */
+}
+
+/* ===== Dashboard (LEFT + RIGHT + TOP USER) ===== */
+.dashboard h3 {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+/* Shared dashboard-style buttons */
+.dashboard button,
+.user-controls button {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 20px;
+  border: 1px solid #d0d0d0;
+  background: #f8f9fa;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.dashboard button:hover,
+.user-controls button:hover {
+  background: #e9ecef;
+}
+
+/* Active navigation item */
+.sidebar-left .dashboard button.active {
+  background: #0d6efd;
+  color: #fff;
+  border-color: #0d6efd;
+}
+
+/* Right dashboard disabled */
+.sidebar-right .dashboard button {
+  background: #bcbcbc;
+  cursor: not-allowed;
+}
+
+/* ===== User controls (top-right) ===== */
+.user-controls {
+  width: 100%;
+}
+
+/* ===== Main feed ===== */
+.main-feed {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  min-height: 400px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .homepage-business-page {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-left,
+  .sidebar-right {
+    display: none;
+  }
+}
+
+/* ===== Carousel Styling ===== */
+.promotions-carousel-container {
+  width: 100%;
+  height: 100%;
+  display: block; /* Changed from flex to block to avoid collapsing issues */
+  padding: 20px 0;
+  overflow: hidden; /* Prevent overflow */
+}
+
+/* Ensure Carousel takes full width */
+.carousel-root {
+  width: 100%;
+}
+
+/* Adjust carousel specific overrides */
+.carousel .slide {
+  background: transparent !important;
+}
+
+.promo-slide-card {
+  background: white;
+  border-radius: 16px;
+  margin: 15px;
+  padding: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  cursor: pointer;
+  height: 280px; /* Reduced height */
+  max-width: 220px; /* Reduced width */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.promo-slide-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.promo-image-container {
+  width: 100%;
+  height: 120px; /* Reduced height */
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.promo-carousel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover !important;
+}
+
+.promo-carousel-logo {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: white;
+  padding: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  object-fit: contain !important;
+}
+
+.promo-details {
+  width: 90%;
+  text-align: center;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.promo-details h4 {
+  margin: 10px 0 5px;
+  font-size: 1.1em;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.business-name {
+  font-size: 0.9em;
+  color: #777;
+  margin-bottom: 5px;
+}
+
+.price-tag {
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.old-price {
+  text-decoration: line-through;
+  color: #aaa;
+  font-size: 0.9em;
+  margin-right: 8px;
+}
+
+.promo-price {
+  font-size: 1.3em;
+  color: #e63946;
+  font-weight: 800;
+}
+
+.view-deal-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 20px;
+  background: linear-gradient(45deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-bottom: 10px;
+}
+
+.view-deal-btn:hover {
+  background: linear-gradient(45deg, #0d6efd, #004494);
+}
+
+/* Fix carousel arrow visibility */
+.carousel .control-arrow {
+  opacity: 1 !important;
+}
+
+.carousel .control-arrow:before {
+  border-left: 12px solid #000 !important;
+  border-right: 12px solid #000 !important;
+}
+
+.carousel .control-prev.control-arrow:before {
+  border-right: 12px solid #000 !important;
+  border-left: none !important;
+}
+
+.carousel .control-next.control-arrow:before {
+  border-left: 12px solid #000 !important;
+  border-right: none !important;
+}
+
+.carousel.carousel-slider .control-arrow:hover {
+  background: transparent !important;
+}
+
+/* Fix carousel indicators position */
+.carousel .control-dots {
+  bottom: -20px !important;
+}
+
+.carousel .control-dots .dot {
+  background: #333 !important;
+  box-shadow: none !important;
+}
+
+.promotions-carousel-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+}
+
+/* ===== Shops Grid ===== */
+.shops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.shop-card {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.shop-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.shop-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+  border: 1px solid #ddd;
+}
+
+.shop-name {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #333;
+}
+
+.shop-product-slide {
+  text-align: center;
+  padding: 0 5px;
+  cursor: pointer;
+}
+
+.shop-product-image {
+  width: 100%;
+  height: 200px;
+  object-fit: contain; /* Changed to contain to show full product */
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.shop-product-title {
+  font-size: 0.95em;
+  font-weight: 500;
+  margin: 5px 0;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shop-product-price {
+  font-weight: bold;
+  color: #28a745;
+  font-size: 1.1em;
+}
+
+.product-price-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 0.9em;
+}

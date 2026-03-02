@@ -1,0 +1,215 @@
+/* Marketplace General Layout */
+.marketplace-container {
+  display: grid;
+  grid-template-columns: 250px 1fr 250px; /* Sidebar | Main | Dashboard */
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  background-color: #f0f2f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  gap: 15px;
+  padding: 10px;
+}
+
+/* Header */
+.marketplace-header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1000;
+}
+
+.header-left img.logo {
+  height: 40px;
+}
+
+.header-center {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-pill {
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: none;
+  background: #eef1f4;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.nav-pill.active {
+  background: #007bff;
+  color: white;
+}
+
+.header-right {
+  display: flex;
+  gap: 10px;
+}
+
+/* Sidebars */
+.sidebar-card {
+  background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+.sidebar-title {
+  color: #0056b3;
+  margin-bottom: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.sidebar-btn {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  background: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  text-align: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+/* Main Content Area */
+.marketplace-main {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  /* Background map effect */
+  background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg');
+  background-size: cover;
+  background-blend-mode: overlay;
+}
+
+/* View Tabs */
+.view-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.view-tab {
+  padding: 10px 30px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 25px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.view-tab.active {
+  background: #0056b3;
+  color: white;
+  border-color: #004494;
+}
+
+/* Content Grid / List */
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  background: white;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.product-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.content-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+  gap: 20px;
+}
+
+.list-item:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.list-item:hover {
+  background-color: #e9ecef;
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.list-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Dropdown */
+.search-dropdown {
+  position: absolute;
+  top: 210px; /* Adjust based on search bar position */
+  left: 20px;
+  width: 210px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.dropdown-item {
+  display: flex;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: #f9f9f9;
+}
+
+.dropdown-item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 5px;
+}
