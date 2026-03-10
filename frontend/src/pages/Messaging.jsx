@@ -164,12 +164,12 @@ export default function Messaging() {
     );
 
   return (
-    <div className="h-screen flex flex-col bg-slate-50 font-sans">
+    <div className="h-screen flex flex-col bg-transparent font-sans">
       <Header title="Messaging" />
 
-      <div className="flex-1 max-w-[1400px] w-full mx-auto p-4 flex gap-6 overflow-hidden">
+      <div className="flex-1 max-w-[1600px] w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-[320px_1fr_280px] gap-6 overflow-hidden">
         {/* CONVERSATION LIST */}
-        <div className="w-80 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-visible shrink-0 self-start">
+        <div className="w-80 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-visible shrink-0 self-start">
           <div className="p-4 border-b border-gray-100">
             <h3 className="font-bold text-lg text-gray-800">Messages</h3>
           </div>
@@ -296,6 +296,33 @@ export default function Messaging() {
             </div>
           )}
         </div>
+
+        {/* RIGHT DASHBOARD (Helper) */}
+        <aside className="hidden lg:flex flex-col gap-5 self-start sticky h-fit">
+          <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
+            <h3 className="mt-0 mb-4 text-lg text-gray-800 font-bold pb-2 text-center">
+              Dashboard (coming soon)
+            </h3>
+
+            <div className="flex flex-col gap-3">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+                Looking For
+              </button>
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+                Selling
+              </button>
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+                Jobs/Opportunities
+              </button>
+              <button
+                onClick={() => navigate('/network')}
+                className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center"
+              >
+                My Network
+              </button>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );

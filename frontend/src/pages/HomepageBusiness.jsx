@@ -4,6 +4,7 @@ import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import api from '../api/axios';
 import Header from '../components/Header';
+import { toast, Toaster } from 'react-hot-toast';
 import bgImage from '../styles/images/Lucid_Origin_A_sleek_professional_world_map_vector_illustratio_2.jpg';
 
 // Fixed User Location (Harare CBD for demo)
@@ -51,9 +52,13 @@ export default function HomepageBusiness() {
   const [openDistanceMenu, setOpenDistanceMenu] = useState(false);
 
   // Reviews State
+  const [reviews, setReviews] = useState([]);
   const [reviewSort, setReviewSort] = useState('Newest');
   const [reviewRatingFilter, setReviewRatingFilter] = useState('All Ratings');
   const [activeReviewDropdown, setActiveReviewDropdown] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [reviewReplies, setReviewReplies] = useState({});
 
   const reviewSortOptions = [
     'Newest',
@@ -104,7 +109,10 @@ export default function HomepageBusiness() {
         try {
           const res = await api.get('/user/dashboard');
           if (res.data.businesses && res.data.businesses.length > 0) {
-            setBusinessProfile(res.data.businesses[0]);
+            const business = res.data.businesses[0];
+            setBusinessProfile(business);
+            // Fetch reviews for this business
+            fetchReviews(business.id);
           }
         } catch (err) {
           console.error('Failed to fetch business info', err);
@@ -113,6 +121,48 @@ export default function HomepageBusiness() {
       fetchBusinessProfile();
     }
   }, []);
+
+  // Fetch reviews for business
+  const fetchReviews = async (businessId) => {
+    try {
+      const res = await api.get(`/reviews/business/${businessId}`);
+      setReviews(res.data);
+      // Fetch replies for each review
+      res.data.forEach((review) => fetchReplies(review.id));
+    } catch (err) {
+      console.error('Failed to fetch reviews', err);
+    }
+  };
+
+  // Fetch replies for a review
+  const fetchReplies = async (reviewId) => {
+    try {
+      const res = await api.get(`/reviews/${reviewId}/replies`);
+      setReviewReplies((prev) => ({ ...prev, [reviewId]: res.data }));
+    } catch (err) {
+      console.error('Failed to fetch replies', err);
+    }
+  };
+
+  // Submit reply
+  const handleReplySubmit = async (reviewId) => {
+    if (!replyText.trim()) {
+      toast.error('Please enter a reply');
+      return;
+    }
+    try {
+      await api.post(`/reviews/${reviewId}/reply`, { reply_text: replyText });
+      setReplyText('');
+      setReplyingTo(null);
+      toast.success('Reply posted successfully');
+      // Refresh replies
+      fetchReplies(reviewId);
+    } catch (err) {
+      console.error('Failed to post reply', err);
+      const msg = err?.response?.data?.error || 'Failed to post reply';
+      toast.error(msg);
+    }
+  };
 
   // -- 1. Derive Unique Categories --
   // Assuming business object has a 'category' field. If not, we use 'Uncategorized'
@@ -224,10 +274,7 @@ export default function HomepageBusiness() {
     });
 
   return (
-    <div
-      className="min-h-screen bg-cover bg-center bg-fixed font-sans pb-10"
-      style={{ backgroundImage: `url(${bgImage})` }}
-    >
+    <div className="min-h-screen bg-transparent font-sans pb-10">
       <Header
         title={
           role === 'business' && businessProfile
@@ -713,58 +760,109 @@ export default function HomepageBusiness() {
                 </div>
               </div>
 
-              {/* Mock Review Input (Visual Only as per request layout) */}
-              <div className="bg-white rounded-2xl border border-gray-300 p-4 mb-6 shadow-inner relative">
-                <textarea
-                  placeholder="Write your review..."
-                  className="w-full h-24 resize-none outline-none text-gray-600 bg-transparent placeholder-gray-400"
-                  disabled
-                ></textarea>
-              </div>
-
-              {/* Reviews List (Mock Data for Visual) */}
+              {/* Reviews List */}
               <div className="flex flex-col gap-4">
-                {[
-                  {
-                    name: 'John Doe - Customer',
-                    text: 'Very reliable, fair pricing, delivered to me on time and the staff were very pleasant.',
-                    rating: 4.2,
-                  },
-                  {
-                    name: 'Jeremiah Logan - Customer',
-                    text: 'Had to rush and buy a product, I was not sure what to get but the staff were very helpful.',
-                    rating: 4.2,
-                  },
-                ].map((review, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm relative"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-bold text-gray-800">{review.name}</h4>
-                      <div className="flex text-yellow-500 text-sm">
-                        {'★'.repeat(Math.round(review.rating))}
-                      </div>
-                    </div>
-                    <p className="text-gray-600 text-sm mb-3 font-medium leading-relaxed">
-                      {review.text}
-                    </p>
-                    <div className="flex items-center justify-between mt-4 border-t border-gray-100 pt-3">
-                      <div className="text-xs text-gray-400 font-bold">
-                        {Math.floor(Math.random() * 20) + 1} People agree
-                      </div>
-                      <div className="flex gap-2">
-                        {/* Action Buttons Mock */}
-                        <button className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg shadow hover:bg-blue-700">
-                          Reply
-                        </button>
-                        <button className="bg-cyan-400 text-white text-xs px-3 py-1.5 rounded-lg shadow hover:bg-cyan-500 font-bold">
-                          Seconded
-                        </button>
-                      </div>
-                    </div>
+                {reviews.length === 0 ? (
+                  <div className="text-center py-10 text-gray-500">
+                    No reviews yet
                   </div>
-                ))}
+                ) : (
+                  reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm relative"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-bold text-gray-800">
+                          {review.full_name || 'Anonymous'} - Customer
+                        </h4>
+                        <div className="flex text-yellow-500 text-sm">
+                          {'★'.repeat(Math.round(review.rating))}
+                          {'☆'.repeat(5 - Math.round(review.rating))}
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-3 font-medium leading-relaxed">
+                        {review.comment || 'No comment provided'}
+                      </p>
+                      <div className="flex items-center justify-between mt-4 border-t border-gray-100 pt-3">
+                        <div className="text-xs text-gray-400 font-bold">
+                          {new Date(review.created_at).toLocaleDateString()}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              if (replyingTo === review.id) {
+                                setReplyingTo(null);
+                                setReplyText('');
+                              } else {
+                                setReplyingTo(review.id);
+                              }
+                            }}
+                            className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg shadow hover:bg-blue-700"
+                          >
+                            {replyingTo === review.id ? 'Cancel' : 'Reply'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Reply Input */}
+                      {replyingTo === review.id && (
+                        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <textarea
+                            placeholder="Write your reply..."
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            className="w-full h-20 resize-none outline-none text-gray-600 bg-white p-2 rounded border border-gray-300"
+                          ></textarea>
+                          <div className="flex justify-end gap-2 mt-2">
+                            <button
+                              onClick={() => {
+                                setReplyingTo(null);
+                                setReplyText('');
+                              }}
+                              className="px-3 py-1.5 text-xs rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleReplySubmit(review.id)}
+                              className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                            >
+                              Submit Reply
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Display Replies */}
+                      {reviewReplies[review.id] &&
+                        reviewReplies[review.id].length > 0 && (
+                          <div className="mt-4 pl-4 border-l-2 border-blue-200 space-y-3">
+                            {reviewReplies[review.id].map((reply) => (
+                              <div
+                                key={reply.id}
+                                className="bg-blue-50 rounded-lg p-3"
+                              >
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="font-bold text-sm text-blue-800">
+                                    {reply.business_name}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {new Date(
+                                      reply.created_at
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-700">
+                                  {reply.reply_text}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           ) : (
@@ -944,6 +1042,7 @@ export default function HomepageBusiness() {
           </div>
         </aside>
       </div>
+      <Toaster position="top-right" />
     </div>
   );
 }

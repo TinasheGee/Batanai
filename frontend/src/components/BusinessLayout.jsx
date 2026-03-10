@@ -10,10 +10,7 @@ export default function BusinessLayout({ children, title }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div
-      className="min-h-screen bg-cover bg-center bg-fixed font-sans pb-10"
-      style={{ backgroundImage: `url(${bgImage})` }}
-    >
+    <div className="min-h-screen bg-transparent font-sans pb-10">
       <Header title={title} />
 
       <div className="max-w-[1600px] mx-auto mt-8 grid grid-cols-1 lg:grid-cols-[260px_1fr_280px] gap-8 px-6">

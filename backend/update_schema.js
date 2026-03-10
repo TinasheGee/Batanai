@@ -7,6 +7,9 @@ const pool = require('./.db_temp_migration.js');
       'ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url VARCHAR(500)'
     );
     await pool.query(
+      'ALTER TABLE products ADD COLUMN IF NOT EXISTS unit VARCHAR(50)'
+    );
+    await pool.query(
       'ALTER TABLE businesses ADD COLUMN IF NOT EXISTS logo_url VARCHAR(500)'
     );
     await pool.query(

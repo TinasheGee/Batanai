@@ -78,10 +78,7 @@ export default function Login() {
   const cancelLeave = () => setShowModal(false);
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat fixed inset-0"
-      style={{ backgroundImage: `url(${bgImage})` }}
-    >
+    <div className="min-h-screen flex items-center justify-center bg-transparent fixed inset-0">
       <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-2xl w-[90%] max-w-[450px] text-center relative">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Welcome to </h1>
         <div className="flex justify-center mb-4">

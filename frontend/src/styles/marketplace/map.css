@@ -3,9 +3,7 @@ html,
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: url('../images/Lucid_Origin_A_sleek_professional_world_map_vector_illustratio_2.jpg')
-    no-repeat center center fixed;
-  background-size: cover;
+  /* Background now applied at App.jsx level */
 }
 
 /* ===== GRID LAYOUT ===== */

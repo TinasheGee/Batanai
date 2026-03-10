@@ -470,6 +470,12 @@ router.get('/:businessId/products', async (req, res) => {
         case 'Newest':
           orderBy = ' ORDER BY created_at DESC';
           break;
+        case 'Price Low to High':
+          orderBy = ' ORDER BY price ASC';
+          break;
+        case 'Price High to Low':
+          orderBy = ' ORDER BY price DESC';
+          break;
         case 'Highest Rating':
           orderBy = ' ORDER BY average_rating DESC';
           break;
@@ -534,7 +540,7 @@ router.post(
   upload.single('image'),
   async (req, res) => {
     const { businessId } = req.params;
-    const { name, description, price, unit } = req.body;
+    const { name, description, price, unit, category } = req.body;
     const image = req.file ? `/uploads/${req.file.filename}` : null;
 
     if (!name || price === undefined) {
@@ -553,16 +559,16 @@ router.post(
 
       const product = await pool.query(
         `INSERT INTO products
-       (business_id, name, description, price, unit, image_url, is_active)
-       VALUES ($1,$2,$3,$4,$5,$6,true)
+       (business_id, name, description, price, unit, category, image_url, is_active)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,true)
        RETURNING *`,
-        [businessId, name, description, price, unit, image]
+        [businessId, name, description, price, unit, category, image]
       );
 
       res.status(201).json(product.rows[0]);
     } catch (err) {
-      console.error(err.message);
-      res.status(500).json({ error: 'Failed to add product' });
+      console.error('Add product error:', err.message);
+      res.status(500).json({ error: err.message || 'Failed to add product' });
     }
   }
 );
@@ -611,26 +617,47 @@ router.put(
 router.delete('/products/:productId', auth, async (req, res) => {
   const { productId } = req.params;
 
+  console.log('DELETE /products/:productId called', {
+    productId,
+    userId: req.user?.id,
+    userRole: req.user?.role,
+  });
+
   try {
     const check = await pool.query(
-      `SELECT p.id FROM products p
+      `SELECT p.id, p.business_id, b.owner_id FROM products p
        JOIN businesses b ON p.business_id=b.id
-       WHERE p.id=$1 AND b.owner_id=$2`,
-      [productId, req.user.id]
+       WHERE p.id=$1`,
+      [productId]
     );
 
-    if (!check.rows.length)
-      return res.status(403).json({ error: 'Not authorized' });
+    console.log('Product check result:', check.rows);
+
+    if (!check.rows.length) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Check authorization
+    if (check.rows[0].owner_id !== req.user.id) {
+      console.log('Authorization failed:', {
+        productOwnerId: check.rows[0].owner_id,
+        requestUserId: req.user.id,
+      });
+      return res
+        .status(403)
+        .json({ error: 'Not authorized to delete this product' });
+    }
 
     const result = await pool.query(
       'UPDATE products SET is_active=false, deleted_at=NOW() WHERE id=$1 RETURNING *',
       [productId]
     );
 
+    console.log('Product deleted successfully:', result.rows[0]);
     res.json({ message: 'Product deleted (soft)', product: result.rows[0] });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: 'Failed to delete product' });
+    console.error('Delete product error:', err);
+    res.status(500).json({ error: err.message || 'Failed to delete product' });
   }
 });
 

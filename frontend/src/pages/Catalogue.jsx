@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import BusinessLayout from '../components/BusinessLayout';
 import api from '../api/axios';
+import { toast, Toaster } from 'react-hot-toast';
 
 export default function Catalogue() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,6 +14,9 @@ export default function Catalogue() {
   // Add/Edit Modal State
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  // Delete Modal State
+  const [productToDelete, setProductToDelete] = useState(null);
+
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -220,14 +224,16 @@ export default function Catalogue() {
               onClick={() => setShowSortDropdown(!showSortDropdown)}
               className="w-full bg-[#0047AB] text-white py-2 px-4 rounded-lg font-bold flex justify-between items-center shadow-md hover:bg-blue-800 transition"
             >
-              Price <span className="text-xs">▼</span>
-              {/* Keeping label "Price" as per design, even though it mixes sort types */}
+              {selectedSort} <span className="text-xs">▼</span>
             </button>
 
             {showSortDropdown && (
               <div className="absolute top-12 left-0 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
                 {[
+                  'Newest',
                   'Oldest',
+                  'Price Low to High',
+                  'Price High to Low',
                   'Highest Rating',
                   'Lowest Rating',
                   'Most Commented',
@@ -274,7 +280,7 @@ export default function Catalogue() {
                 <div className="bg-white p-2 rounded-2xl shadow-sm mb-3 w-32 h-24 flex items-center justify-center overflow-hidden">
                   {product.image_url ? (
                     <img
-                      src={product.image_url}
+                      src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${product.image_url}`}
                       alt={product.name}
                       className="w-full h-full object-contain"
                     />
@@ -318,15 +324,7 @@ export default function Catalogue() {
                     Edit
                   </button>
                   <button
-                    onClick={async () => {
-                      if (!window.confirm('Delete this product?')) return;
-                      try {
-                        await api.delete(`/products/${product.id}`);
-                        fetchProducts();
-                      } catch (err) {
-                        console.error('Failed to delete product', err);
-                      }
-                    }}
+                    onClick={() => setProductToDelete(product)}
                     className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold hover:bg-red-600"
                   >
                     Delete
@@ -398,7 +396,7 @@ export default function Catalogue() {
                 {/* Image Upload */}
                 <div>
                   <label className="block text-xs font-medium mb-1">
-                    Image (optional)
+                    Image <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="file"
@@ -410,6 +408,7 @@ export default function Catalogue() {
                       })
                     }
                     className="w-full"
+                    required={!editingProduct}
                   />
                   {editingProduct &&
                     editingProduct.image_url &&
@@ -430,6 +429,33 @@ export default function Catalogue() {
                 </button>
                 <button
                   onClick={async () => {
+                    // Validation
+                    if (!form.name?.trim()) {
+                      alert('Please enter a product name');
+                      return;
+                    }
+                    if (!form.description?.trim()) {
+                      alert('Please enter a product description');
+                      return;
+                    }
+                    if (!form.price || parseFloat(form.price) <= 0) {
+                      alert('Please enter a valid price');
+                      return;
+                    }
+                    if (!form.unit?.trim()) {
+                      alert('Please enter a unit (e.g., kg, unit, piece)');
+                      return;
+                    }
+                    if (!form.category) {
+                      alert('Please select a category');
+                      return;
+                    }
+                    // For new products, image is mandatory
+                    if (!editingProduct && !form.imageFile) {
+                      alert('Please upload a product image');
+                      return;
+                    }
+
                     try {
                       if (editingProduct) {
                         // If an image file is selected, send multipart/form-data to PUT (backend accepts upload.single('image'))
@@ -442,21 +468,17 @@ export default function Catalogue() {
                           if (form.category)
                             payload.append('category', form.category);
                           payload.append('image', form.imageFile);
+                          // Do NOT set Content-Type manually — axios sets it with the correct boundary for FormData
                           await api.put(
-                            `/products/${editingProduct.id}`,
-                            payload,
-                            {
-                              headers: {
-                                'Content-Type': 'multipart/form-data',
-                              },
-                            }
+                            `/business/products/${editingProduct.id}`,
+                            payload
                           );
                         } else {
                           const payload = { ...form };
                           // remove imageFile if present
                           delete payload.imageFile;
                           await api.put(
-                            `/products/${editingProduct.id}`,
+                            `/business/products/${editingProduct.id}`,
                             payload
                           );
                         }
@@ -470,21 +492,25 @@ export default function Catalogue() {
                           payload.append('category', form.category);
                         if (form.imageFile)
                           payload.append('image', form.imageFile);
+                        // Do NOT set Content-Type manually — axios sets it with the correct boundary for FormData
                         await api.post(
                           `/business/${businessId}/products`,
-                          payload,
-                          {
-                            headers: { 'Content-Type': 'multipart/form-data' },
-                          }
+                          payload
                         );
                       }
                       setShowModal(false);
-                      // reset imageFile after save
                       setForm((f) => ({ ...f, imageFile: null }));
                       fetchProducts();
+                      toast.success(
+                        editingProduct ? 'Product updated!' : 'Product added!'
+                      );
                     } catch (err) {
                       console.error('Failed to save product', err);
-                      alert('Failed to save product');
+                      const msg =
+                        err?.response?.data?.error ||
+                        err.message ||
+                        'Failed to save product';
+                      toast.error(`Error: ${msg}`);
                     }
                   }}
                   className="px-4 py-2 rounded bg-blue-600 text-white font-bold"
@@ -495,6 +521,77 @@ export default function Catalogue() {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        {productToDelete && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl text-center">
+              <div className="mb-4 text-red-500">
+                <svg
+                  className="w-12 h-12 mx-auto"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Delete Product?</h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete{' '}
+                <span className="font-semibold">{productToDelete.name}</span>?
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setProductToDelete(null)}
+                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-bold hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    console.log(
+                      'Delete button clicked, productToDelete:',
+                      productToDelete
+                    );
+                    try {
+                      console.log(
+                        'Making DELETE request to:',
+                        `/business/products/${productToDelete.id}`
+                      );
+                      const response = await api.delete(
+                        `/business/products/${productToDelete.id}`
+                      );
+                      console.log('Delete response:', response.data);
+                      fetchProducts();
+                      setProductToDelete(null);
+                      toast.success('Product deleted successfully');
+                    } catch (err) {
+                      console.error('Failed to delete product', err);
+                      console.error('Error response:', err?.response);
+                      const msg =
+                        err?.response?.data?.error ||
+                        err.message ||
+                        'Failed to delete product';
+                      toast.error(`Error: ${msg}`);
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition"
+                >
+                  Yes, Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <Toaster position="top-right" />
       </div>
     </BusinessLayout>
   );

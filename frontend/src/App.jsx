@@ -22,110 +22,121 @@ import Catalogue from './pages/Catalogue';
 import Portfolio from './pages/Portfolio';
 import ContactUs from './pages/ContactUs';
 import RequireAuth from './components/RequireAuth';
+import bgImage from './styles/images/Lucid_Origin_A_sleek_professional_world_map_vector_illustratio_2.jpg';
 
 function App() {
   return (
     <ToastProvider>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register-customer" element={<RegisterCustomer />} />
-          <Route path="/register-business" element={<RegisterBusiness />} />
-          <Route path="/business-payment" element={<BusinessPayment />} />
+      <div
+        style={{
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          minHeight: '100vh',
+        }}
+      >
+        <Router>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register-customer" element={<RegisterCustomer />} />
+            <Route path="/register-business" element={<RegisterBusiness />} />
+            <Route path="/business-payment" element={<BusinessPayment />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/home"
-            element={
-              <RequireAuth>
-                <HomepageBusiness />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/business-dashboard"
-            element={
-              <RequireAuth>
-                <BusinessDashboard />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/marketplace"
-            element={
-              <RequireAuth>
-                <Marketplace />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/network"
-            element={
-              <RequireAuth>
-                <MyNetwork />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/messaging"
-            element={
-              <RequireAuth>
-                <Messaging />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <RequireAuth>
-                <Profile />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <RequireAuth>
-                <Settings />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/reviews"
-            element={
-              <RequireAuth>
-                <Reviews />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/catalogue"
-            element={
-              <RequireAuth>
-                <Catalogue />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/portfolio"
-            element={
-              <RequireAuth>
-                <Portfolio />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/contact-us"
-            element={
-              <RequireAuth>
-                <ContactUs />
-              </RequireAuth>
-            }
-          />
-        </Routes>
-      </Router>
+            {/* Protected Routes */}
+            <Route
+              path="/home"
+              element={
+                <RequireAuth>
+                  <HomepageBusiness />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/business-dashboard"
+              element={
+                <RequireAuth>
+                  <BusinessDashboard />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/marketplace"
+              element={
+                <RequireAuth>
+                  <Marketplace />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/network"
+              element={
+                <RequireAuth>
+                  <MyNetwork />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/messaging"
+              element={
+                <RequireAuth>
+                  <Messaging />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <RequireAuth>
+                  <Profile />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <RequireAuth>
+                  <Settings />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/reviews"
+              element={
+                <RequireAuth>
+                  <Reviews />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/catalogue"
+              element={
+                <RequireAuth>
+                  <Catalogue />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/portfolio"
+              element={
+                <RequireAuth>
+                  <Portfolio />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/contact-us"
+              element={
+                <RequireAuth>
+                  <ContactUs />
+                </RequireAuth>
+              }
+            />
+          </Routes>
+        </Router>
+      </div>
     </ToastProvider>
   );
 }

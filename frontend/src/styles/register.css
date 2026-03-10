@@ -21,8 +21,7 @@ body {
    BACKGROUND
 ============================ */
 body {
-  background: url('images/Lucid_Origin_A_sleek_professional_world_map_vector_illustratio_2.jpg')
-    center center / cover no-repeat fixed;
+  /* Background now applied at App.jsx level */
   color: #000;
 }
 

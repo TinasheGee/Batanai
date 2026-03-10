@@ -104,14 +104,14 @@ export default function MyNetwork() {
     );
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans pb-10">
+    <div className="min-h-screen bg-transparent font-sans pb-10">
       <Header title="Connect With Sellers & Discuss Better Deals" />
 
       {/* Main Content Area: Left lists, Center map, Right suggestions/dashboard */}
       <div className="max-w-[1600px] mx-auto mt-6 px-4 grid grid-cols-1 lg:grid-cols-[320px_1fr_320px] gap-6 items-start">
         {/* LEFT: Companies + Customers stacked */}
         <aside className="flex flex-col gap-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 w-[320px]">
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-5 w-[320px]">
             <h3 className="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">
               <span>Companies</span>
               <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
@@ -153,7 +153,7 @@ export default function MyNetwork() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 w-[320px]">
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-5 w-[320px]">
             <h3 className="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">
               <span>Customers</span>
               <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
@@ -267,24 +267,25 @@ export default function MyNetwork() {
         </main>
 
         {/* RIGHT: Dashboard menu */}
-        <aside className="flex flex-col gap-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 w-[320px]">
-            <h3 className="font-bold text-gray-800 text-lg mb-4">
+        <aside className="hidden lg:flex flex-col gap-5 sticky top-32 h-fit">
+          <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
+            <h3 className="mt-0 mb-4 text-lg text-gray-800 font-bold pb-2 text-center">
               Dashboard (coming soon)
             </h3>
+
             <div className="flex flex-col gap-3">
-              <button className="w-full py-3 rounded-full bg-gray-100 text-gray-800 font-semibold">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
                 Looking For
               </button>
-              <button className="w-full py-3 rounded-full bg-gray-100 text-gray-800 font-semibold">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
                 Selling
               </button>
-              <button className="w-full py-3 rounded-full bg-gray-100 text-gray-800 font-semibold">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
                 Jobs/Opportunities
               </button>
               <button
                 onClick={() => navigate('/network')}
-                className="w-full py-3 rounded-full bg-gray-100 text-gray-800 font-semibold"
+                className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center"
               >
                 My Network
               </button>
