@@ -872,8 +872,8 @@ export default function Marketplace() {
               </Tooltip>
             </Marker>
           )}
-          {/* Only show business markers when user has searched for products */}
-          {search &&
+          {/* Show business markers when user has searched for products */}
+          {search?.trim() &&
             mapProducts.map(
               (p) =>
                 p.latitude &&
@@ -998,12 +998,12 @@ export default function Marketplace() {
             )}
         </MapContainer>
         {/* Info overlay when no search */}
-        {!search && (
+        {!search?.trim() && (
           <div className="absolute top-5 left-1/2 -translate-x-1/2 bg-blue-500/90 text-white px-6 py-3 rounded-full text-sm z-[500] shadow-lg">
             🔍 Search for products to see business locations on the map
           </div>
         )}
-        {sortBy === 'closest' && userLocation && search && (
+        {sortBy === 'closest' && userLocation && search?.trim() && (
           <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm z-[500]">
             Showing results within {searchRange}km
           </div>
