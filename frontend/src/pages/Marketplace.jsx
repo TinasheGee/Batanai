@@ -577,11 +577,23 @@ export default function Marketplace() {
               <div className="flex justify-between items-start text-sm text-gray-500 mb-4">
                 <span className="truncate flex-1 mr-2">{p.business_name}</span>
                 {p.distance ? (
-                  <span className="text-blue-600 font-semibold whitespace-nowrap">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 font-semibold whitespace-nowrap hover:text-blue-800 hover:underline cursor-pointer"
+                    title="Get directions on Google Maps"
+                  >
                     {parseFloat(p.distance).toFixed(1)} km
-                  </span>
+                  </a>
                 ) : userLocation && p.latitude && p.longitude ? (
-                  <span className="text-blue-600 font-semibold whitespace-nowrap">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 font-semibold whitespace-nowrap hover:text-blue-800 hover:underline cursor-pointer"
+                    title="Get directions on Google Maps"
+                  >
                     {getDistanceFromLatLonInKm(
                       userLocation.lat,
                       userLocation.lng,
@@ -589,7 +601,7 @@ export default function Marketplace() {
                       p.longitude
                     )}{' '}
                     km
-                  </span>
+                  </a>
                 ) : (
                   <span>{p.location}</span>
                 )}
@@ -705,11 +717,23 @@ export default function Marketplace() {
                 </div>
                 <div className="text-right">
                   {p.distance ? (
-                    <div className="text-xs text-blue-500 font-bold">
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-500 font-bold hover:text-blue-700 hover:underline cursor-pointer"
+                      title="Get directions on Google Maps"
+                    >
                       {parseFloat(p.distance).toFixed(1)} km
-                    </div>
+                    </a>
                   ) : userLocation && p.latitude && p.longitude ? (
-                    <div className="text-xs text-blue-500 font-bold">
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-500 font-bold hover:text-blue-700 hover:underline cursor-pointer"
+                      title="Get directions on Google Maps"
+                    >
                       {getDistanceFromLatLonInKm(
                         userLocation.lat,
                         userLocation.lng,
@@ -717,7 +741,7 @@ export default function Marketplace() {
                         p.longitude
                       )}{' '}
                       km
-                    </div>
+                    </a>
                   ) : null}
                 </div>
               </div>
@@ -871,11 +895,23 @@ export default function Marketplace() {
                       </div>
                       {/* Distance display */}
                       {p.distance ? (
-                        <div className="text-xs text-blue-600 font-semibold mb-1">
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 font-semibold mb-1 hover:text-blue-800 hover:underline cursor-pointer block"
+                          title="Get directions on Google Maps"
+                        >
                           {parseFloat(p.distance).toFixed(1)} km away
-                        </div>
+                        </a>
                       ) : userLocation && p.latitude && p.longitude ? (
-                        <div className="text-xs text-blue-600 font-semibold mb-1">
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 font-semibold mb-1 hover:text-blue-800 hover:underline cursor-pointer block"
+                          title="Get directions on Google Maps"
+                        >
                           {getDistanceFromLatLonInKm(
                             userLocation.lat,
                             userLocation.lng,
@@ -883,7 +919,7 @@ export default function Marketplace() {
                             p.longitude
                           )}{' '}
                           km away
-                        </div>
+                        </a>
                       ) : null}
                       <p className="text-xs text-gray-500 mb-2">
                         {p.business_name}

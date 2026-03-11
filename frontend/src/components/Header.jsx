@@ -8,6 +8,7 @@ export default function Header({ title }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -53,16 +54,16 @@ export default function Header({ title }) {
           />
         </div>
 
-        {/* Center: Title & Nav Stack */}
-        <div className="flex flex-col items-center justify-center flex-1 px-4 gap-1">
+        {/* Center: Title & Nav Stack - Desktop */}
+        <div className="hidden lg:flex flex-col items-center justify-center flex-1 px-4 gap-1">
           {/* Dynamic Title */}
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight hidden md:block">
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
             {user?.role === 'BUSINESS' && user?.business_name
               ? user.business_name
               : title}
           </h1>
 
-          {/* Navigation Pills */}
+          {/* Navigation Pills - Desktop */}
           <div className="flex items-center gap-20 mt-1">
             {navItems.map((item) => (
               <button
@@ -83,11 +84,74 @@ export default function Header({ title }) {
           </div>
         </div>
 
-        {/* Right: Profile */}
-        <div className="flex-shrink-0 pr-2">
+        {/* Mobile Title & Hamburger */}
+        <div className="flex lg:hidden flex-1 justify-center items-center">
+          <h1 className="text-lg font-extrabold text-gray-900 tracking-tight truncate">
+            {user?.role === 'BUSINESS' && user?.business_name
+              ? user.business_name
+              : title}
+          </h1>
+        </div>
+
+        {/* Hamburger Menu Button - Mobile */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="lg:hidden flex-shrink-0 p-2 rounded-full hover:bg-white/50 transition-all"
+          aria-label="Toggle menu"
+        >
+          <svg
+            className="w-6 h-6 text-gray-900"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            {mobileMenuOpen ? (
+              <path d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
+
+        {/* Right: Profile - Desktop */}
+        <div className="hidden lg:block flex-shrink-0 pr-2">
           <UserProfileDropdown user={user} />
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden mt-2 bg-white/95 backdrop-blur-md rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+          <div className="flex flex-col p-4 space-y-2">
+            {navItems.map((item) => (
+              <button
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileMenuOpen(false);
+                }}
+                className={`
+                  w-full px-6 py-3 rounded-full text-base font-bold transition-all duration-200 border text-left
+                  ${
+                    isActive(item.path)
+                      ? 'bg-[#0047AB] text-white border-[#0047AB] shadow-md'
+                      : 'bg-gradient-to-b from-white to-gray-50 text-gray-800 border-gray-300 hover:bg-gray-100'
+                  }
+                `}
+              >
+                {item.label}
+              </button>
+            ))}
+            {/* User Profile in Mobile Menu */}
+            <div className="pt-2 border-t border-gray-200 mt-2">
+              <UserProfileDropdown user={user} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
