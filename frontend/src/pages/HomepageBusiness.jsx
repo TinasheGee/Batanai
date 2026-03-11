@@ -282,6 +282,226 @@ export default function HomepageBusiness() {
         }
       />
 
+      {/* MOBILE FILTERS - Customer only, visible only on mobile */}
+      {role !== 'business' && (
+        <div className="lg:hidden max-w-[1600px] mx-auto mt-4 px-6">
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/50">
+            <div className="flex flex-col gap-3">
+              {/* Search */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 absolute right-3 top-2 text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+
+              {/* Row with Category and Sort */}
+              <div className="grid grid-cols-2 gap-2">
+                {/* Categories Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setOpenCategoryMenu(!openCategoryMenu)}
+                    className="flex items-center justify-between w-full px-3 py-2 rounded-full bg-gray-100 border border-gray-300 hover:bg-gray-200 text-gray-800 font-semibold transition text-xs"
+                  >
+                    <span className="truncate">
+                      {selectedCategory === 'All'
+                        ? 'Categories'
+                        : selectedCategory}
+                    </span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 flex-shrink-0 ml-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
+                    </svg>
+                  </button>
+                  {openCategoryMenu && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20 max-h-60 overflow-y-auto">
+                      {categories.map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => {
+                            setSelectedCategory(cat);
+                            setOpenCategoryMenu(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 transition ${selectedCategory === cat ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700'}`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Sort Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setOpenSortMenu(!openSortMenu)}
+                    className="flex items-center justify-between w-full px-3 py-2 rounded-full bg-gray-100 border border-gray-300 hover:bg-gray-200 text-gray-800 font-semibold transition text-xs"
+                  >
+                    <span className="truncate">Sort</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 flex-shrink-0 ml-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+                      />
+                    </svg>
+                  </button>
+                  {openSortMenu && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20 max-h-60 overflow-y-auto">
+                      <button
+                        onClick={() => {
+                          setSortOption('default');
+                          setOpenSortMenu(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                      >
+                        Default
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSortOption('name-asc');
+                          setOpenSortMenu(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                      >
+                        Name (A-Z)
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSortOption('name-desc');
+                          setOpenSortMenu(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                      >
+                        Name (Z-A)
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSortOption('price-asc');
+                          setOpenSortMenu(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                      >
+                        Price Low-High
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSortOption('price-desc');
+                          setOpenSortMenu(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                      >
+                        Price High-Low
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSortOption('distance-asc');
+                          setOpenSortMenu(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                      >
+                        Closest
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Mall Filter */}
+              <div className="relative">
+                <select
+                  className="w-full appearance-none bg-gray-100 border border-gray-300 rounded-full px-3 py-2 text-xs focus:outline-none"
+                  value={selectedMallFilter}
+                  onChange={(e) => setSelectedMallFilter(e.target.value)}
+                >
+                  <option value="">All malls</option>
+                  {malls.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Distance Filter Panel */}
+              {sortOption === 'distance-asc' && (
+                <div className="bg-gray-100 rounded-xl px-3 py-2 border border-gray-300">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-bold text-blue-900">
+                      Range
+                    </span>
+                    <span className="text-xs font-bold bg-white px-2 py-0.5 rounded shadow-sm text-blue-800">
+                      {maxDistance} km
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    value={maxDistance}
+                    onChange={(e) => setMaxDistance(Number(e.target.value))}
+                    className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                    <span>1km</span>
+                    <span>100km</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div
         className={`max-w-[1600px] mx-auto mt-8 grid grid-cols-1 ${role === 'business' ? 'lg:grid-cols-[260px_1fr_280px]' : 'lg:grid-cols-[260px_1fr_280px]'} gap-8 px-6`}
       >

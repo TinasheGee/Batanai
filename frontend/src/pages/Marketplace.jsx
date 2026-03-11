@@ -1016,6 +1016,188 @@ export default function Marketplace() {
     <div className="min-h-screen bg-transparent font-sans pb-10">
       <Header title="Marketplace" />
 
+      {/* MOBILE FILTERS - Visible only on mobile */}
+      <div className="lg:hidden max-w-[1600px] mx-auto mt-4 px-4">
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/50">
+          <div className="flex flex-col gap-3">
+            {/* Search */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={search}
+                onChange={handleSearchChange}
+                className="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 absolute right-3 top-2 text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+
+            {/* Row with Category, Mall, and Sort */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* Categories Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setOpenCategoryMenu(!openCategoryMenu)}
+                  className="flex items-center justify-between w-full px-3 py-2 rounded-full bg-gray-100 border border-gray-300 hover:bg-gray-200 text-gray-800 font-semibold transition text-xs"
+                >
+                  <span className="truncate">
+                    {selectedCategory === 'All'
+                      ? 'Categories'
+                      : selectedCategory}
+                  </span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 flex-shrink-0 ml-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </button>
+                {openCategoryMenu && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20 max-h-60 overflow-y-auto">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          setSelectedCategory(cat);
+                          setOpenCategoryMenu(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 transition ${selectedCategory === cat ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700'}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="relative">
+                <select
+                  className="w-full appearance-none bg-gray-100 border border-gray-300 rounded-full px-3 py-2 text-xs focus:outline-none cursor-pointer truncate"
+                  onChange={handleSortChange}
+                  value={sortBy}
+                >
+                  <option value="default">Default</option>
+                  <option value="name-asc">Name (A-Z)</option>
+                  <option value="name-desc">Name (Z-A)</option>
+                  <option value="price-asc">Price Low-High</option>
+                  <option value="price-desc">Price High-Low</option>
+                  <option value="distance-asc">Closest</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Mall Filter */}
+            <div className="relative">
+              <select
+                className="w-full appearance-none bg-gray-100 border border-gray-300 rounded-full px-3 py-2 text-xs focus:outline-none"
+                value={selectedMall}
+                onChange={handleMallChange}
+              >
+                <option value="">All malls</option>
+                {malls.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Distance Filter Panel */}
+            {sortBy === 'distance-asc' && (
+              <div className="bg-gray-100 rounded-xl px-3 py-2 border border-gray-300">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-bold text-blue-900">Range</span>
+                  <span className="text-xs font-bold bg-white px-2 py-0.5 rounded shadow-sm text-blue-800">
+                    {searchRange} km
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="500"
+                  value={searchRange}
+                  onChange={(e) => setSearchRange(parseInt(e.target.value))}
+                  className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                  <span>1km</span>
+                  <span>500km</span>
+                </div>
+              </div>
+            )}
+
+            {/* View Toggle for Mobile */}
+            <div className="flex gap-2 justify-center pt-2">
+              {['grid', 'list', 'map'].map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setView(mode)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    view === mode
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-gray-500 bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-[1600px] mx-auto mt-6 px-4 grid grid-cols-1 lg:grid-cols-[300px_1fr_260px] gap-6 items-start">
         {/* LEFT SIDEBAR - NAVIGATION */}
         <aside className="hidden lg:flex flex-col gap-5 sticky top-28 h-fit">
@@ -1193,7 +1375,8 @@ export default function Marketplace() {
             </div>
           )}
 
-          <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 mb-6 flex gap-20 w-full justify-center">
+          {/* View Toggle - Desktop only */}
+          <div className="hidden lg:flex bg-white rounded-2xl p-2 shadow-sm border border-gray-100 mb-6 gap-20 w-full justify-center">
             {['grid', 'list', 'map'].map((mode) => (
               <button
                 key={mode}
