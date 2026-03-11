@@ -38,7 +38,6 @@ export default function HomepageBusiness() {
   const [selectedMallFilter, setSelectedMallFilter] = useState('');
   const [role, setRole] = useState(null);
   const [businessProfile, setBusinessProfile] = useState(null);
-  const [gridSize, setGridSize] = useState(3); // 3x3 default
 
   // Filtering & Sorting State
   const [searchTerm, setSearchTerm] = useState('');
@@ -604,22 +603,6 @@ export default function HomepageBusiness() {
                     </div>
                   </div>
                 )}
-
-                {/* Grid Toggles */}
-                <div className="flex justify-between gap-2 mt-2">
-                  <button
-                    onClick={() => setGridSize(3)}
-                    className={`flex-1 py-1 px-4 rounded-full border text-sm font-bold transition ${gridSize === 3 ? 'bg-white border-gray-400 shadow-sm' : 'bg-transparent border-transparent text-gray-500 hover:bg-gray-100'}`}
-                  >
-                    3x3
-                  </button>
-                  <button
-                    onClick={() => setGridSize(4)}
-                    className={`flex-1 py-1 px-4 rounded-full border text-sm font-bold transition ${gridSize === 4 ? 'bg-white border-gray-400 shadow-sm' : 'bg-transparent border-transparent text-gray-500 hover:bg-gray-100'}`}
-                  >
-                    4x4
-                  </button>
-                </div>
               </div>
             </div>
           </aside>
@@ -869,9 +852,7 @@ export default function HomepageBusiness() {
             /* CUSTOMER FEED (Existing Code) */
             <div className="w-full h-full flex flex-col">
               {filteredPromotions.length > 0 ? (
-                <div
-                  className={`grid gap-6 w-full ${gridSize === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}
-                >
+                <div className="grid gap-6 w-full grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                   {filteredPromotions.map((shop) => (
                     <div
                       key={shop.id}
@@ -942,7 +923,7 @@ export default function HomepageBusiness() {
                                   <img
                                     src={product.image_url}
                                     alt={product.name}
-                                    className={`w-full ${gridSize === 4 ? 'h-[160px]' : 'h-[220px]'} object-contain bg-white rounded-xl mb-3`}
+                                    className="w-full h-[220px] object-contain bg-white rounded-xl mb-3"
                                   />
                                 </div>
 

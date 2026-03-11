@@ -68,16 +68,29 @@ export default function RegisterCustomer() {
 
     try {
       // Send registration request
-      const res = await api.post('/auth/register', {
+      const registerRes = await api.post('/auth/register', {
         role: 'customer', // Automatically assign role
         full_name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         password: formData.password,
       });
 
-      console.log('Customer registered:', res.data);
-      alert('Registration successful!');
-      navigate('/login');
+      console.log('Customer registered:', registerRes.data);
+
+      // Auto-login after successful registration
+      const loginRes = await api.post('/auth/login', {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Store token and role in localStorage (auto-remember)
+      localStorage.setItem('token', loginRes.data.token);
+      localStorage.setItem('role', loginRes.data.user.role);
+
+      alert('Registration successful! Welcome to Batanai!');
+
+      // Navigate to home page
+      navigate('/home');
     } catch (err) {
       console.error(err.response || err);
       alert(err.response?.data?.error || 'Registration failed');

@@ -42,15 +42,15 @@ export default function Header({ title }) {
   };
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto pt-3 px-4 sticky top-0 z-[100]">
+    <div className="w-full max-w-[1600px] mx-auto pt-3 px-2 lg:px-4 sticky top-0 z-[100]">
       {/* Main Header Container - Glassmorphism Pill */}
-      <div className="bg-slate-200/80 backdrop-blur-md rounded-full shadow-lg border border-white/40 px-3 py-2 flex items-center justify-between min-h-[80px]">
+      <div className="bg-slate-200/80 backdrop-blur-md rounded-full shadow-lg border border-white/40 px-2 lg:px-3 py-2 flex items-center justify-between min-h-[60px] lg:min-h-[80px]">
         {/* Left: Logo - Overlapping effect */}
-        <div className="flex-shrink-0 relative pl-2">
+        <div className="flex-shrink-0 relative pl-1 lg:pl-2">
           <img
             src={logo}
             alt="Batanai"
-            className="h-16 w-auto object-contain drop-shadow-sm transform hover:scale-105 transition-transform"
+            className="h-10 lg:h-16 w-auto object-contain drop-shadow-sm transform hover:scale-105 transition-transform"
           />
         </div>
 
@@ -84,9 +84,9 @@ export default function Header({ title }) {
           </div>
         </div>
 
-        {/* Mobile Title & Hamburger */}
-        <div className="flex lg:hidden flex-1 justify-center items-center">
-          <h1 className="text-lg font-extrabold text-gray-900 tracking-tight truncate">
+        {/* Mobile Title - Centered and truncated */}
+        <div className="flex lg:hidden flex-1 justify-center items-center px-2 min-w-0">
+          <h1 className="text-sm font-bold text-gray-900 tracking-tight truncate max-w-[180px]">
             {user?.role === 'BUSINESS' && user?.business_name
               ? user.business_name
               : title}
