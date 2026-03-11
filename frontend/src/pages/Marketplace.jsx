@@ -73,19 +73,32 @@ const redIcon = new L.Icon({
 function MapUpdater({ products, userLocation }) {
   const map = useMap();
   useEffect(() => {
-    // Always center on user location if available
+    const isMobileViewport = window.innerWidth < 1024;
+    const productPoints = products
+      .filter((p) => p.latitude && p.longitude)
+      .map((p) => [parseFloat(p.latitude), parseFloat(p.longitude)]);
+
+    // On mobile, when results exist, fit both customer and business markers.
+    if (isMobileViewport && userLocation && productPoints.length > 0) {
+      const allPoints = [
+        [userLocation.lat, userLocation.lng],
+        ...productPoints,
+      ];
+      const bounds = L.latLngBounds(allPoints);
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+      return;
+    }
+
+    // Default behavior: center on user if available.
     if (userLocation) {
       map.setView([userLocation.lat, userLocation.lng], 12);
-    } else if (products.length > 0) {
-      // Fallback to fitting product bounds if no user location
-      const validPoints = products
-        .filter((p) => p.latitude && p.longitude)
-        .map((p) => [parseFloat(p.latitude), parseFloat(p.longitude)]);
+      return;
+    }
 
-      if (validPoints.length > 0) {
-        const bounds = L.latLngBounds(validPoints);
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-      }
+    // Fallback to fitting product bounds when user location is unavailable.
+    if (productPoints.length > 0) {
+      const bounds = L.latLngBounds(productPoints);
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
     }
   }, [products, userLocation, map]);
   return null;
