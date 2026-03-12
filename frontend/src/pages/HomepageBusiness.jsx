@@ -615,7 +615,7 @@ export default function HomepageBusiness() {
               <h3 className="mt-0 mb-4 text-xl text-gray-800 font-bold text-center">
                 Navigation
               </h3>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col justify-between h-[240px]">
                 {/* Search */}
                 <div className="relative">
                   <input
@@ -684,7 +684,7 @@ export default function HomepageBusiness() {
                 </div>
 
                 {/* Mall Filter - placed after Categories */}
-                <div className="relative mt-3">
+                <div className="relative">
                   <div className="relative">
                     <select
                       className="w-full appearance-none bg-gray-100 border border-gray-300 rounded-full px-4 py-2.5 text-sm focus:outline-none"
@@ -1089,7 +1089,15 @@ export default function HomepageBusiness() {
                           <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 mr-3 text-2xl"></div>
                         )}
                         <div className="flex flex-col">
-                          <div className="font-bold text-lg text-gray-800 truncate">
+                          <div
+                            className="font-bold text-base text-gray-800 leading-tight max-w-[170px] md:max-w-[200px] truncate md:whitespace-normal md:line-clamp-2"
+                            style={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
                             {shop.business_name}
                           </div>
                           {shop.mall_name && (

@@ -1218,7 +1218,7 @@ export default function Marketplace() {
             <h3 className="mt-0 mb-4 text-xl text-gray-800 font-bold text-center">
               Navigation
             </h3>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col justify-between h-[240px]">
               {/* Search */}
               <div className="relative">
                 <input
@@ -1285,7 +1285,7 @@ export default function Marketplace() {
               </div>
 
               {/* Mall Filter */}
-              <div className="relative mt-3">
+              <div className="relative">
                 <div className="relative">
                   <select
                     className="w-full appearance-none bg-gray-100 border border-gray-300 rounded-full px-4 py-2.5 text-sm focus:outline-none"
