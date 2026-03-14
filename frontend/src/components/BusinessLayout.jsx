@@ -16,7 +16,7 @@ export default function BusinessLayout({ children, title }) {
       <div className="max-w-[1600px] mx-auto mt-8 grid grid-cols-1 lg:grid-cols-[260px_1fr_280px] gap-8 px-6">
         {/* LEFT SIDEBAR - PROFILE NAV */}
         <aside className="hidden lg:flex flex-col gap-5 sticky top-32 h-fit">
-          <div className="bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-lg border border-white/50">
+          <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
             <h3 className="mt-0 mb-4 text-xl text-[#0047AB] font-bold text-center">
               Profile
             </h3>
@@ -136,13 +136,13 @@ export default function BusinessLayout({ children, title }) {
             </h3>
 
             <div className="flex flex-col gap-3">
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Looking For
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Selling
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Jobs/Opportunities
               </button>
               <button

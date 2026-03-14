@@ -190,7 +190,7 @@ export default function MyNetwork() {
 
         {/* CENTER: Suggestions + People (replacing the map) */}
         <main className="flex flex-col gap-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
             <h3 className="font-bold text-gray-800 text-lg mb-4">
               Suggested for you
             </h3>
@@ -229,7 +229,7 @@ export default function MyNetwork() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
             <h3 className="font-bold text-gray-800 text-lg mb-1">
               People like you
             </h3>
@@ -274,13 +274,13 @@ export default function MyNetwork() {
             </h3>
 
             <div className="flex flex-col gap-3">
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Looking For
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Selling
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Jobs/Opportunities
               </button>
               <button

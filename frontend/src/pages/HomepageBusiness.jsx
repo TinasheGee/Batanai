@@ -298,7 +298,7 @@ export default function HomepageBusiness() {
                 />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 absolute right-3 top-2 text-gray-500"
+                  className="h-5 w-5 absolute right-3 top-2 text-gray-800"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -455,7 +455,7 @@ export default function HomepageBusiness() {
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-800">
                   <svg
                     className="w-3 h-3"
                     fill="none"
@@ -491,7 +491,7 @@ export default function HomepageBusiness() {
                     onChange={(e) => setMaxDistance(Number(e.target.value))}
                     className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
-                  <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                  <div className="flex justify-between text-[10px] text-gray-800 mt-1">
                     <span>1km</span>
                     <span>100km</span>
                   </div>
@@ -509,7 +509,7 @@ export default function HomepageBusiness() {
         {role === 'business' ? (
           // BUSINESS SIDEBAR
           <aside className="hidden lg:flex flex-col gap-5 sticky top-32 h-fit">
-            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-lg border border-white/50">
+            <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
               <h3 className="mt-0 mb-4 text-xl text-[#0047AB] font-bold text-center">
                 Profile
               </h3>
@@ -611,7 +611,7 @@ export default function HomepageBusiness() {
         ) : (
           // CUSTOMER SIDEBAR (Navigation)
           <aside className="hidden lg:flex flex-col gap-5 sticky top-32 h-fit">
-            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-lg border border-white/50">
+            <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
               <h3 className="mt-0 mb-4 text-xl text-gray-800 font-bold text-center">
                 Navigation
               </h3>
@@ -627,7 +627,7 @@ export default function HomepageBusiness() {
                   />
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 absolute right-3 top-2 text-gray-500"
+                    className="h-5 w-5 absolute right-3 top-2 text-gray-800"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -698,7 +698,7 @@ export default function HomepageBusiness() {
                         </option>
                       ))}
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-800">
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -817,7 +817,7 @@ export default function HomepageBusiness() {
                       onChange={(e) => setMaxDistance(Number(e.target.value))}
                       className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
-                    <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                    <div className="flex justify-between text-[10px] text-gray-800 mt-1">
                       <span>1km</span>
                       <span>100km</span>
                     </div>
@@ -951,7 +951,7 @@ export default function HomepageBusiness() {
                                     {'★'.repeat(5 - option.stars)}
                                   </span>
                                 </div>
-                                <span className="text-gray-500 text-xs font-semibold">
+                                <span className="text-gray-800 text-xs font-semibold">
                                   ({option.label})
                                 </span>
                               </>
@@ -966,7 +966,7 @@ export default function HomepageBusiness() {
               {/* Reviews List */}
               <div className="flex flex-col gap-4">
                 {reviews.length === 0 ? (
-                  <div className="text-center py-10 text-gray-500">
+                  <div className="text-center py-10 text-gray-800">
                     No reviews yet
                   </div>
                 ) : (
@@ -1050,7 +1050,7 @@ export default function HomepageBusiness() {
                                   <span className="font-bold text-sm text-blue-800">
                                     {reply.business_name}
                                   </span>
-                                  <span className="text-xs text-gray-500">
+                                  <span className="text-xs text-gray-800">
                                     {new Date(
                                       reply.created_at
                                     ).toLocaleDateString()}
@@ -1076,21 +1076,26 @@ export default function HomepageBusiness() {
                   {filteredPromotions.map((shop) => (
                     <div
                       key={shop.id}
-                      className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/50 flex flex-col hover:-translate-y-1 transition-transform duration-300"
+                      className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 flex flex-col hover:-translate-y-1 transition-transform duration-300 text-gray-900"
                     >
                       <div className="flex items-center mb-4 pb-3 border-b border-gray-100">
                         {shop.logo_url ? (
-                          <img
-                            src={shop.logo_url}
-                            alt={shop.business_name}
-                            className="w-12 h-12 rounded-full object-cover mr-3 border-2 border-white shadow-sm"
-                          />
+                          <button
+                            onClick={() => navigate('/contact-us')}
+                            className="p-0 bg-transparent border-0 cursor-pointer mr-3"
+                          >
+                            <img
+                              src={shop.logo_url}
+                              alt={shop.business_name}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                            />
+                          </button>
                         ) : (
                           <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 mr-3 text-2xl"></div>
                         )}
                         <div className="flex flex-col">
                           <div
-                            className="font-bold text-base text-gray-800 leading-tight max-w-[170px] md:max-w-[200px] truncate md:whitespace-normal md:line-clamp-2"
+                            className="font-bold text-base text-gray-900 leading-tight max-w-[170px] md:max-w-[200px] truncate md:whitespace-normal md:line-clamp-2"
                             style={{
                               display: '-webkit-box',
                               WebkitLineClamp: 2,
@@ -1101,7 +1106,7 @@ export default function HomepageBusiness() {
                             {shop.business_name}
                           </div>
                           {shop.mall_name && (
-                            <div className="text-sm text-gray-500 mt-0.5">
+                            <div className="text-sm text-gray-800 mt-0.5">
                               {shop.mall_name}
                             </div>
                           )}
@@ -1155,12 +1160,12 @@ export default function HomepageBusiness() {
                                   />
                                 </div>
 
-                                <div className="text-base font-semibold text-gray-800 my-1 truncate">
+                                <div className="text-base font-semibold text-gray-900 my-1 truncate">
                                   {product.name}
                                 </div>
                                 <div className="flex items-center justify-center gap-3 mt-2">
                                   {/* Price Section */}
-                                  <span className="line-through text-gray-400 text-sm font-medium">
+                                  <span className="line-through text-gray-800 text-sm font-medium">
                                     ${(Number(product.price) * 1.25).toFixed(2)}
                                   </span>
                                   <span className="font-extrabold text-[#0047AB] text-xl bg-blue-50 px-3 py-1 rounded-lg">
@@ -1169,7 +1174,7 @@ export default function HomepageBusiness() {
                                 </div>
 
                                 {/* Footer: Rating & Distance */}
-                                <div className="flex items-center justify-between mt-3 px-2 text-sm text-gray-600">
+                                <div className="flex items-center justify-between mt-3 px-2 text-sm text-gray-700">
                                   {/* Rating */}
                                   <div className="flex items-center gap-1 font-bold text-yellow-500">
                                     <svg
@@ -1179,20 +1184,39 @@ export default function HomepageBusiness() {
                                     >
                                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                     </svg>
-                                    <span>
+                                    <span className="text-gray-900 font-bold">
                                       {product.average_rating || '4.5'}
                                     </span>
                                   </div>
 
-                                  {/* Distance */}
-                                  <div className="font-medium text-blue-500">
-                                    {getDistanceFromLatLonInKm(
-                                      USER_LAT,
-                                      USER_LNG,
-                                      shop.latitude,
-                                      shop.longitude
+                                  {/* Distance (clickable -> Google Maps) */}
+                                  <div>
+                                    {shop.latitude && shop.longitude ? (
+                                      <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${shop.latitude},${shop.longitude}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-medium text-blue-800 hover:underline"
+                                      >
+                                        {getDistanceFromLatLonInKm(
+                                          USER_LAT,
+                                          USER_LNG,
+                                          shop.latitude,
+                                          shop.longitude
+                                        )}{' '}
+                                        km
+                                      </a>
+                                    ) : (
+                                      <span className="font-medium text-blue-800">
+                                        {getDistanceFromLatLonInKm(
+                                          USER_LAT,
+                                          USER_LNG,
+                                          shop.latitude,
+                                          shop.longitude
+                                        )}{' '}
+                                        km
+                                      </span>
                                     )}
-                                    km
                                   </div>
                                 </div>
                               </div>
@@ -1232,13 +1256,13 @@ export default function HomepageBusiness() {
             </h3>
 
             <div className="flex flex-col gap-3">
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Looking For
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Selling
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Jobs/Opportunities
               </button>
               <button

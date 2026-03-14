@@ -83,3 +83,94 @@ router.patch('/businesses/:id/verify', auth, adminOnly, async (req, res) => {
 });
 
 module.exports = router;
+
+// Site settings endpoints
+router.get('/site-settings', auth, adminOnly, async (req, res) => {
+  try {
+    // Ensure table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        id SERIAL PRIMARY KEY,
+        key TEXT UNIQUE NOT NULL,
+        value TEXT
+      )
+    `);
+
+    const r = await pool.query('SELECT key, value FROM site_settings');
+    const settings = {};
+    r.rows.forEach((row) => (settings[row.key] = row.value));
+    res.json(settings);
+  } catch (err) {
+    console.error('GET site-settings error', err.message);
+    res.status(500).json({ error: 'Failed to load site settings' });
+  }
+});
+
+// Public site settings (read-only) - for customers & guests
+router.get('/public/site-settings', async (req, res) => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        id SERIAL PRIMARY KEY,
+        key TEXT UNIQUE NOT NULL,
+        value TEXT
+      )
+    `);
+
+    const r = await pool.query('SELECT key, value FROM site_settings');
+    const settings = {};
+    r.rows.forEach((row) => (settings[row.key] = row.value));
+    res.json(settings);
+  } catch (err) {
+    console.error('GET public site-settings error', err.message);
+    res.status(500).json({ error: 'Failed to load site settings' });
+  }
+});
+
+router.patch('/site-settings', auth, adminOnly, async (req, res) => {
+  try {
+    const updates = req.body || {};
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        id SERIAL PRIMARY KEY,
+        key TEXT UNIQUE NOT NULL,
+        value TEXT
+      )
+    `);
+
+    // Upsert each key
+    for (const [key, value] of Object.entries(updates)) {
+      await pool.query(
+        `INSERT INTO site_settings (key, value) VALUES ($1, $2)
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+        [key, value]
+      );
+    }
+
+    const r = await pool.query('SELECT key, value FROM site_settings');
+    const settings = {};
+    r.rows.forEach((row) => (settings[row.key] = row.value));
+    res.json(settings);
+  } catch (err) {
+    console.error('PATCH site-settings error', err.message);
+    res.status(500).json({ error: 'Failed to update site settings' });
+  }
+});
+
+// Simple stats endpoint for admin dashboard
+router.get('/stats', auth, adminOnly, async (req, res) => {
+  try {
+    const usersR = await pool.query('SELECT COUNT(*) FROM users');
+    const businessesR = await pool.query('SELECT COUNT(*) FROM businesses');
+    const productsR = await pool.query('SELECT COUNT(*) FROM products');
+
+    res.json({
+      users: Number(usersR.rows[0].count || 0),
+      businesses: Number(businessesR.rows[0].count || 0),
+      products: Number(productsR.rows[0].count || 0),
+    });
+  } catch (err) {
+    console.error('ADMIN STATS ERROR', err.message);
+    res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});

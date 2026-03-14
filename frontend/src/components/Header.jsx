@@ -47,11 +47,16 @@ export default function Header({ title }) {
       <div className="bg-slate-200/80 backdrop-blur-md rounded-full shadow-lg border border-white/40 px-2 lg:px-3 py-2 flex items-center justify-between min-h-[60px] lg:min-h-[80px]">
         {/* Left: Logo - Overlapping effect */}
         <div className="flex-shrink-0 relative pl-1 lg:pl-2">
-          <img
-            src={logo}
-            alt="Batanai"
-            className="h-10 lg:h-16 w-auto object-contain drop-shadow-sm transform hover:scale-105 transition-transform"
-          />
+          <button
+            onClick={() => navigate('/contact-us')}
+            className="p-0 bg-transparent border-0 cursor-pointer"
+          >
+            <img
+              src={logo}
+              alt="Batanai"
+              className="h-10 lg:h-16 w-auto object-contain drop-shadow-sm transform hover:scale-105 transition-transform"
+            />
+          </button>
         </div>
 
         {/* Center: Title & Nav Stack - Desktop */}
@@ -86,7 +91,15 @@ export default function Header({ title }) {
 
         {/* Mobile Title - Centered and truncated */}
         <div className="flex lg:hidden flex-1 justify-center items-center px-2 min-w-0">
-          <h1 className="text-sm font-bold text-gray-900 tracking-tight truncate max-w-[180px]">
+          <h1
+            className="text-sm font-bold text-gray-900 tracking-tight text-center"
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
             {user?.role === 'BUSINESS' && user?.business_name
               ? user.business_name
               : title}

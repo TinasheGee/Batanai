@@ -299,6 +299,14 @@ export default function Marketplace() {
           owner_id: product.owner_id,
           business_name: product.business_name,
           logo_url: product.logo_url,
+          // attach minimal product snapshot so messaging can include it
+          product: {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image_url: product.image_url,
+            business_id: product.business_id || product.businessId,
+          },
         },
       },
     });
@@ -569,7 +577,7 @@ export default function Marketplace() {
         {currentProducts.map((p) => (
           <div
             key={p.id}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col overflow-hidden"
+            className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-md transition-shadow flex flex-col overflow-hidden"
           >
             <div className="h-48 w-full bg-gray-100 relative">
               <img
@@ -711,7 +719,7 @@ export default function Marketplace() {
         {currentProducts.map((p) => (
           <div
             key={p.id}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex gap-4 hover:shadow-md transition-shadow"
+            className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 flex gap-4 hover:shadow-md transition-shadow"
           >
             <img
               src={p.image_url}
@@ -1214,7 +1222,7 @@ export default function Marketplace() {
       <div className="max-w-[1600px] mx-auto mt-6 px-4 grid grid-cols-1 lg:grid-cols-[300px_1fr_260px] gap-6 items-start">
         {/* LEFT SIDEBAR - NAVIGATION */}
         <aside className="hidden lg:flex flex-col gap-5 sticky top-28 h-fit">
-          <div className="bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-lg border border-white/50">
+          <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
             <h3 className="mt-0 mb-4 text-xl text-gray-800 font-bold text-center">
               Navigation
             </h3>
@@ -1381,7 +1389,7 @@ export default function Marketplace() {
         <main className="min-w-0">
           {/* Product Count Display */}
           {products.length > 0 && (
-            <div className="mb-4 text-sm text-gray-600 font-medium px-2">
+            <div className="mb-4 text-sm text-gray-900 font-semibold px-3 inline-block bg-white/90 rounded-full py-1 shadow-sm">
               Showing {indexOfFirstProduct + 1}-
               {Math.min(indexOfLastProduct, products.length)} of{' '}
               {products.length} products
@@ -1389,7 +1397,7 @@ export default function Marketplace() {
           )}
 
           {/* View Toggle - Desktop only */}
-          <div className="hidden lg:flex bg-white rounded-2xl p-2 shadow-sm border border-gray-100 mb-6 gap-20 w-full justify-center">
+          <div className="hidden lg:flex bg-white/40 backdrop-blur-md rounded-2xl p-2 shadow-sm border border-white/50 mb-6 gap-20 w-full justify-center">
             {['grid', 'list', 'map'].map((mode) => (
               <button
                 key={mode}
@@ -1405,7 +1413,7 @@ export default function Marketplace() {
             ))}
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 min-h-[500px] overflow-hidden">
+          <div className="bg-white/40 backdrop-blur-md rounded-3xl p-6 shadow-lg border border-white/50 min-h-[500px] overflow-hidden">
             {!loading ? (
               <>
                 {view === 'grid' && renderGrid()}
@@ -1456,13 +1464,13 @@ export default function Marketplace() {
             </h3>
 
             <div className="flex flex-col gap-3">
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Looking For
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Selling
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Jobs/Opportunities
               </button>
               <button

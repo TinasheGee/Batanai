@@ -11,6 +11,7 @@ export default function Messaging() {
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [attachment, setAttachment] = useState(null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   const [socket, setSocket] = useState(null);
@@ -66,7 +67,7 @@ export default function Messaging() {
 
   useEffect(() => {
     if (location.state?.startChatWith && !loading) {
-      const { owner_id, business_name, logo_url } =
+      const { owner_id, business_name, logo_url, product } =
         location.state.startChatWith;
       const existing = conversations.find((c) => c.partner_id === owner_id);
       if (existing) {
@@ -80,6 +81,11 @@ export default function Messaging() {
           isTemp: true,
         });
       }
+      // If a product was attached, set it in state so the composer shows it
+      if (product) {
+        setAttachment(product);
+      }
+      // clear navigation state so refresh doesn't re-open
       window.history.replaceState({}, document.title);
     }
   }, [loading, conversations, location.state]);
@@ -124,16 +130,27 @@ export default function Messaging() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !activeChat) return;
+    if (!activeChat) return;
+    if (!newMessage.trim() && !attachment) return;
 
     try {
-      const res = await api.post('/messages/send', {
+      const payload = {
         receiverId: activeChat.partner_id,
         content: newMessage,
-      });
+      };
+      if (attachment) {
+        payload.attachment = {
+          type: 'product',
+          product_id: attachment.id,
+          snapshot: attachment,
+        };
+      }
+
+      const res = await api.post('/messages/send', payload);
 
       setMessages([...messages, { ...res.data, sender_type: 'me' }]);
       setNewMessage('');
+      setAttachment(null);
       fetchConversations();
     } catch (err) {
       console.error(err);
@@ -221,7 +238,7 @@ export default function Messaging() {
         </div>
 
         {/* CHAT AREA */}
-        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+        <div className="flex-1 bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 flex flex-col overflow-hidden">
           {activeChat ? (
             <>
               {/* Chat Header */}
@@ -271,6 +288,33 @@ export default function Messaging() {
                 onSubmit={handleSendMessage}
                 className="p-4 bg-white border-t border-gray-100 flex gap-3"
               >
+                {attachment && (
+                  <div className="flex items-center gap-3 p-2 bg-gray-50 border border-gray-200 rounded-lg w-full">
+                    <img
+                      src={attachment.image_url}
+                      alt={attachment.name}
+                      className="w-12 h-12 object-cover rounded-md"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-gray-800 truncate">
+                        {attachment.name}
+                      </div>
+                      {attachment.price != null && (
+                        <div className="text-sm text-green-700 font-bold">
+                          ${Number(attachment.price).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAttachment(null)}
+                      className="text-gray-500 hover:text-gray-700 ml-2"
+                      aria-label="Remove attachment"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
                 <input
                   type="text"
                   placeholder="Type a message..."
@@ -280,7 +324,7 @@ export default function Messaging() {
                 />
                 <button
                   type="submit"
-                  disabled={!newMessage.trim()}
+                  disabled={!(newMessage.trim() || attachment)}
                   className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-blue-200"
                 >
                   Send
@@ -305,13 +349,13 @@ export default function Messaging() {
             </h3>
 
             <div className="flex flex-col gap-3">
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Looking For
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Selling
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
                 Jobs/Opportunities
               </button>
               <button

@@ -110,8 +110,10 @@ button.primary {
 .view-toggle button {
   padding: 8px 16px;
   border-radius: 20px;
-  border: 1px solid #00000087;
-  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.85);
+  color: #1f2937; /* darker for better contrast */
+  font-weight: 600;
   cursor: pointer;
 }
 
