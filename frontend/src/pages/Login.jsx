@@ -93,7 +93,7 @@ export default function Login() {
 
         {/* Login/Register toggle */}
         <div className="bg-gray-200 p-1 rounded-full flex mb-6">
-          <button className="flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all bg-white shadow-sm text-blue-600">
+          <button className="flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all bg-white shadow-sm text-brand-600">
             Login
           </button>
           <button
@@ -111,7 +111,7 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all"
           />
           <div className="relative">
             <input
@@ -120,10 +120,10 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all pr-10"
+              className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all pr-10"
             />
             <span
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-blue-500"
+              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-brand-600"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
@@ -160,7 +160,7 @@ export default function Login() {
               id="rememberMe"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="rounded text-blue-500 focus:ring-blue-500"
+              className="rounded text-brand-500 focus:ring-brand-500"
             />
             <label htmlFor="rememberMe" className="cursor-pointer">
               Remember me
@@ -169,7 +169,7 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all mt-2"
+            className="w-full py-3 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all mt-2"
           >
             Login
           </button>
@@ -181,14 +181,14 @@ export default function Login() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
           <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-7 w-[90%] max-w-[400px] shadow-2xl text-center">
-            <h3 className="text-blue-600 mb-2.5 text-lg font-bold">Warning</h3>
+            <h3 className="text-brand-600 mb-2.5 text-lg font-bold">Warning</h3>
             <p className="mb-5 text-gray-700">
               You have data in the fields. Are you sure you want to navigate
               away?
             </p>
             <div className="flex justify-end gap-2.5">
               <button
-                className="px-5 py-2 rounded-full border-none bg-blue-600 text-white cursor-pointer hover:bg-blue-700 transition"
+                className="px-5 py-2 rounded-full border-none bg-brand-600 text-white cursor-pointer hover:bg-brand-500 transition"
                 onClick={confirmLeave}
               >
                 Yes

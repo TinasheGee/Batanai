@@ -2,40 +2,293 @@
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-// Define Business Types and their potential companies
+// Define Business Types and their potential companies (top-level categories map)
 const businessTypes = {
-  Supermarket: [
-    'OK Zimbabwe',
-    'TM Supermarket',
-    'Pick n Pay',
-    'Choppies',
-    'Bon Marche',
-    'Spar',
-    'Food World',
-    'N. Richards',
-    'Gain Cash & Carry',
-    'OK Mart',
+  'Accounting & Financial Services': [
+    'Accounting',
+    'Bookkeeping',
+    'Tax Services',
+    'Payroll Services',
+    'Financial Consulting',
+    'Auditing',
   ],
-  Butchery: [
-    'Texas Meats',
-    'Surrey Meats',
-    'Koala Park',
-    'MC Meats',
-    'Super Meat Market',
+
+  'Advertising & Marketing': [
+    'Digital Marketing',
+    'Social Media Marketing',
+    'Branding',
+    'Advertising Agencies',
+    'SEO Services',
+    'Content Creation',
   ],
-  'Fresh Produce': [
-    'Food Lovers Market',
-    'Fruit & Veg City',
-    'Fresh In A Box',
-    'Farmers Market',
+
+  'Agriculture & Farming': [
+    'Crop Farming',
+    'Livestock Farming',
+    'Agricultural Equipment',
+    'Seed & Fertilizer Suppliers',
+    'Irrigation Services',
   ],
-  Bakery: ['Bakers Inn', 'Lobels', 'Proton', 'Superbake', 'M&M Bakery'],
-  Liquor: [
-    'Liquor Boys',
-    'Bon Marche Liquor',
-    'Tipsy',
-    'Piccolo',
-    'Beer Engine',
+
+  'Architecture & Engineering': [
+    'Architectural Design',
+    'Structural Engineering',
+    'Civil Engineering',
+    'Urban Planning',
+    'Building Design',
+  ],
+
+  Automotive: [
+    'Vehicle Sales',
+    'Auto Repairs',
+    'Auto Parts',
+    'Car Wash & Detailing',
+    'Auto Electrical',
+    'Tyres & Wheels',
+  ],
+
+  'Beauty & Personal Care': [
+    'Hair Salons',
+    'Barbers',
+    'Nail Salons',
+    'Makeup Artists',
+    'Spas & Massage',
+    'Beauty Products',
+  ],
+
+  'Building & Construction': [
+    'Building Contractors',
+    'Renovations',
+    'Roofing',
+    'Painting',
+    'Tiling',
+    'Carpentry',
+  ],
+
+  'Catering & Food Services': [
+    'Restaurants',
+    'Cafes',
+    'Takeaways',
+    'Catering Services',
+    'Bakeries',
+    'Food Suppliers',
+  ],
+
+  'Childcare & Education': [
+    'Daycare',
+    'Tutoring',
+    'Private Schools',
+    'Music Lessons',
+    'Driving Schools',
+  ],
+
+  'Cleaning & Maintenance': [
+    'House Cleaning',
+    'Office Cleaning',
+    'Laundry Services',
+    'Dry Cleaning',
+    'Waste Removal',
+  ],
+
+  'Clothing & Fashion': [
+    'Clothing Boutiques',
+    'Fashion Designers',
+    'Tailoring & Alterations',
+    'Shoe Stores',
+    'Accessories',
+  ],
+
+  'Computer & IT Services': [
+    'Computer Sales',
+    'Computer Repairs',
+    'IT Support',
+    'Network Installation',
+    'Cyber Security',
+  ],
+
+  'Creative & Design': [
+    'Graphic Design',
+    'Photography',
+    'Videography',
+    'Illustration',
+    'Animation',
+  ],
+
+  'Digital & Online Services': [
+    'Website Development',
+    'App Development',
+    'E-commerce Development',
+    'UI/UX Design',
+    'Software Development',
+  ],
+
+  'Electrical Services': [
+    'Electrical Installation',
+    'Electrical Repairs',
+    'Solar Installation',
+    'Generator Installation',
+  ],
+
+  'Event Services': [
+    'Event Planning',
+    'Event Decor',
+    'Sound & Lighting',
+    'Wedding Planning',
+    'Corporate Events',
+  ],
+
+  'Fitness & Sports': [
+    'Gyms',
+    'Personal Trainers',
+    'Yoga Studios',
+    'Sports Coaching',
+    'Sports Equipment',
+  ],
+
+  'Florists & Gifts': [
+    'Florists',
+    'Gift Shops',
+    'Custom Gift Boxes',
+    'Greeting Cards',
+  ],
+
+  'Furniture & Home Decor': [
+    'Furniture Stores',
+    'Interior Design',
+    'Home Decor',
+    'Lighting',
+    'Kitchen Design',
+  ],
+
+  'Garden & Landscaping': [
+    'Landscaping',
+    'Garden Maintenance',
+    'Garden Design',
+    'Nurseries',
+  ],
+
+  'Health & Medical': [
+    'Clinics',
+    'Doctors',
+    'Dentists',
+    'Physiotherapy',
+    'Nutritionists',
+  ],
+
+  'Hospitality & Accommodation': [
+    'Hotels',
+    'Bed & Breakfast',
+    'Guest Houses',
+    'Lodges',
+  ],
+
+  'Insurance Services': [
+    'Life Insurance',
+    'Health Insurance',
+    'Vehicle Insurance',
+    'Business Insurance',
+  ],
+
+  'Jewelry & Luxury Goods': [
+    'Jewelry Stores',
+    'Custom Jewelry',
+    'Watch Stores',
+    'Luxury Accessories',
+  ],
+
+  'Kids & Baby': ['Baby Stores', 'Kids Clothing', 'Toys', 'Kids Entertainment'],
+
+  'Legal Services': ['Law Firms', 'Legal Consulting', 'Notary Services'],
+
+  'Logistics & Transport': [
+    'Courier Services',
+    'Freight Services',
+    'Moving Companies',
+    'Warehousing',
+  ],
+
+  'Marketing & Media': [
+    'Advertising Agencies',
+    'Public Relations',
+    'Media Production',
+    'Marketing Consulting',
+  ],
+
+  'Medical Supplies & Pharmacies': [
+    'Pharmacies',
+    'Medical Equipment',
+    'Health Supplies',
+  ],
+
+  'Mobile Phones & Electronics': [
+    'Mobile Phone Stores',
+    'Phone Repairs',
+    'Electronics Stores',
+    'Accessories',
+  ],
+
+  'Pet Services': ['Pet Shops', 'Veterinary Clinics', 'Pet Grooming'],
+
+  'Plumbing & Water Services': [
+    'Plumbing Installation',
+    'Plumbing Repairs',
+    'Water Systems',
+    'Borehole Services',
+  ],
+
+  'Printing & Branding': [
+    'Printing Services',
+    'Signage',
+    'Promotional Products',
+    'Corporate Branding',
+  ],
+
+  'Property & Real Estate': [
+    'Real Estate Agencies',
+    'Property Management',
+    'Property Development',
+    'Property Sales',
+  ],
+
+  'Security Services': [
+    'Security Companies',
+    'CCTV Installation',
+    'Alarm Systems',
+    'Access Control',
+  ],
+
+  'Solar & Energy': [
+    'Solar Installations',
+    'Solar Equipment',
+    'Energy Consulting',
+  ],
+
+  'Travel & Tourism': [
+    'Travel Agencies',
+    'Tour Operators',
+    'Safari Tours',
+    'Holiday Packages',
+  ],
+
+  'Vehicle Hire & Transport': [
+    'Car Hire',
+    'Taxi Services',
+    'Bus Hire',
+    'Airport Transfers',
+  ],
+
+  Weddings: [
+    'Wedding Planners',
+    'Wedding Venues',
+    'Wedding Photographers',
+    'Wedding Decor',
+  ],
+
+  'Wellness & Lifestyle': [
+    'Spas',
+    'Massage Therapy',
+    'Holistic Wellness',
+    'Life Coaching',
   ],
 };
 
@@ -317,6 +570,7 @@ async function seed() {
           name VARCHAR(255) NOT NULL,
           description TEXT,
           category VARCHAR(100),
+          subcategory VARCHAR(100),
           location VARCHAR(255),
           website VARCHAR(255),
           phone_number VARCHAR(50),
@@ -332,6 +586,11 @@ async function seed() {
           logo_url TEXT,
           mall_id INTEGER REFERENCES malls(id)
       );
+          CREATE TABLE IF NOT EXISTS categories (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            parent_id INTEGER REFERENCES categories(id) ON DELETE CASCADE
+          );
       CREATE TABLE IF NOT EXISTS products (
           id SERIAL PRIMARY KEY,
           business_id INTEGER REFERENCES businesses(id) ON DELETE CASCADE,
@@ -410,6 +669,44 @@ async function seed() {
     // We want about 50 businesses total, distributed among categories
     const categories = Object.keys(businessTypes);
 
+    // Seed categories and subcategories into categories table
+    console.log(' Seeding categories into categories table...');
+    const categoryMap = {};
+    for (const [parentName, subs] of Object.entries(businessTypes)) {
+      // create parent if not exists
+      const existingParent = await pool.query(
+        'SELECT id FROM categories WHERE name=$1 AND parent_id IS NULL',
+        [parentName]
+      );
+      let parentId;
+      if (existingParent.rows.length) parentId = existingParent.rows[0].id;
+      else {
+        const r = await pool.query(
+          'INSERT INTO categories (name, parent_id) VALUES ($1, NULL) RETURNING id',
+          [parentName]
+        );
+        parentId = r.rows[0].id;
+      }
+      categoryMap[parentName] = { id: parentId, subs: {} };
+
+      // create subcategories
+      for (const s of subs) {
+        const existingSub = await pool.query(
+          'SELECT id FROM categories WHERE name=$1 AND parent_id=$2',
+          [s, parentId]
+        );
+        if (existingSub.rows.length) {
+          categoryMap[parentName].subs[s] = existingSub.rows[0].id;
+        } else {
+          const r2 = await pool.query(
+            'INSERT INTO categories (name, parent_id) VALUES ($1, $2) RETURNING id',
+            [s, parentId]
+          );
+          categoryMap[parentName].subs[s] = r2.rows[0].id;
+        }
+      }
+    }
+
     for (let i = 0; i < 50; i++) {
       // Pick a category
       const category = categories[i % categories.length]; // cycle through types
@@ -455,13 +752,14 @@ async function seed() {
         : null;
 
       const bizRes = await pool.query(
-        `INSERT INTO businesses (owner_id, name, description, category, location, website, phone_number, email, employee_count, is_verified, is_active, latitude, longitude, logo_url, mall_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING id`,
+        `INSERT INTO businesses (owner_id, name, description, category, subcategory, location, website, phone_number, email, employee_count, is_verified, is_active, latitude, longitude, logo_url, mall_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id`,
         [
           ownerId,
           businessName,
           description,
           category,
+          company, // subcategory
           location,
           `www.${company.toLowerCase().replace(/ /g, '')}.co.zw`, // website
           '+263 77 123 4567', // phone
@@ -475,15 +773,26 @@ async function seed() {
           assignedMallId,
         ]
       );
-      createdBusinesses.push({ id: bizRes.rows[0].id, category: category });
+      createdBusinesses.push({
+        id: bizRes.rows[0].id,
+        category: category,
+        subcategory: company,
+      });
     }
 
     // 4. Create Products
     console.log(' Adding Products...');
 
     for (const biz of createdBusinesses) {
-      // Get products relevant to this business category
-      const catalog = productsPool[biz.category] || productsPool['Groceries'];
+      // Get products relevant to this business category or subcategory; fallback to any available pool
+      const pools = Object.values(productsPool || {});
+      const randomFallback = pools.length
+        ? pools[Math.floor(Math.random() * pools.length)]
+        : [];
+      const catalog =
+        productsPool[biz.category] ||
+        productsPool[biz.subcategory] ||
+        randomFallback;
 
       // Pick 5-8 random products from catalog
       const shuffled = catalog.sort(() => 0.5 - Math.random());

@@ -8,6 +8,8 @@ export default function Catalogue() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState(['All']);
+  const [categoriesHierarchy, setCategoriesHierarchy] = useState([]);
+  const [flatCategories, setFlatCategories] = useState(['All']);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSort, setSelectedSort] = useState('Newest');
   const [businessId, setBusinessId] = useState(null);
@@ -85,7 +87,12 @@ export default function Catalogue() {
       setProducts(res.data.products);
 
       if (res.data.categories) {
-        setCategories(['All', ...res.data.categories]);
+        // keep product-specific categories for fallback
+        const prodCats = Array.isArray(res.data.categories)
+          ? res.data.categories
+          : [];
+        // do not overwrite global flatCategories here
+        // but keep product categories if needed elsewhere
       }
     } catch (err) {
       console.error('Failed to fetch filtered products', err);
@@ -106,13 +113,37 @@ export default function Catalogue() {
     cat.toLowerCase().includes(categorySearch.toLowerCase())
   );
 
+  // Fetch global categories (hierarchical) for filters and product form
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await api.get('/business/categories');
+        if (res.data && Array.isArray(res.data.categories)) {
+          const data = res.data.categories;
+          setCategoriesHierarchy(data);
+          // flatten: include top-level and subcategories
+          const flat = ['All'];
+          data.forEach((c) => {
+            if (c && c.name) flat.push(c.name);
+            if (Array.isArray(c.subcategories)) flat.push(...c.subcategories);
+          });
+          setFlatCategories(flat);
+          setCategories(flat);
+        }
+      } catch (e) {
+        console.warn('Failed to load global categories', e?.message || e);
+      }
+    };
+    loadCategories();
+  }, []);
+
   return (
     <BusinessLayout title="Our Catalogue">
       {/* Main Content Card - Glassmorphism */}
-      <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/60 min-h-[600px]">
+      <div className="bg-white/40 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/60 min-h-[600px]">
         {/* Top Row: Title + Rating */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-          <h2 className="text-3xl font-extrabold text-[#0047AB]">
+          <h2 className="text-3xl font-extrabold text-brand-600">
             Our Catalogue
           </h2>
           {/* Add Product Button for Business Owners */}
@@ -136,16 +167,7 @@ export default function Catalogue() {
               </button>
             </div>
           )}
-          {/* Rating Box */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 py-2 flex items-center gap-3">
-            <div className="flex text-yellow-400 text-2xl">
-              {'★'.repeat(3)}
-              <span className="text-gray-300">{'★'.repeat(2)}</span>
-            </div>
-            <span className="font-bold text-gray-800 text-sm">
-              3.5 (158 Reviews)
-            </span>
-          </div>
+          {/* Rating Box removed per request */}
         </div>
 
         {/* Search Bar */}
@@ -171,7 +193,7 @@ export default function Catalogue() {
             placeholder="Search our Products"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-4 pr-10 py-2.5 rounded-full border-2 border-gray-300 shadow-inner text-gray-700 font-medium focus:outline-none focus:border-blue-500 bg-white"
+            className="w-full pl-4 pr-10 py-2.5 rounded-full border-2 border-gray-300 shadow-inner text-gray-700 font-medium focus:outline-none focus:border-brand-500 bg-white"
           />
         </div>
 
@@ -181,7 +203,7 @@ export default function Catalogue() {
           <div className="relative flex-1 max-w-[200px]" ref={catRef}>
             <button
               onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-              className="w-full bg-[#0047AB] text-white py-2 px-4 rounded-lg font-bold flex justify-between items-center shadow-md hover:bg-blue-800 transition"
+              className="w-full bg-brand-600 text-white py-2 px-4 rounded-lg font-bold flex justify-between items-center shadow-md hover:bg-brand-500 transition"
             >
               {selectedCategory === 'All' ? 'Category' : selectedCategory}{' '}
               <span className="text-xs">▼</span>
@@ -199,20 +221,75 @@ export default function Catalogue() {
                     autoFocus
                   />
                 </div>
-                <div className="max-h-60 overflow-y-auto">
-                  {filteredCategories.map((cat) => (
-                    <div
-                      key={cat}
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        setShowCategoryDropdown(false);
-                      }}
-                      className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between items-center ${selectedCategory === cat ? 'bg-blue-50 text-[#0047AB] font-bold' : 'text-gray-700'}`}
-                    >
-                      {cat}
-                      {selectedCategory === cat && <span>✓</span>}
-                    </div>
-                  ))}
+                <div className="max-h-40 overflow-y-auto scrollbar-thin">
+                  {categoriesHierarchy && categoriesHierarchy.length > 0
+                    ? categoriesHierarchy
+                        .filter((c) => {
+                          const term = categorySearch.toLowerCase();
+                          if (!term) return true;
+                          if (c.name.toLowerCase().includes(term)) return true;
+                          return (
+                            Array.isArray(c.subcategories) &&
+                            c.subcategories.some((s) =>
+                              s.toLowerCase().includes(term)
+                            )
+                          );
+                        })
+                        .map((cat) => (
+                          <div key={cat.name}>
+                            <div
+                              onClick={() => {
+                                setSelectedCategory(cat.name);
+                                setShowCategoryDropdown(false);
+                              }}
+                              className={`px-4 py-2 text-sm cursor-pointer hover:bg-brand-200 flex justify-between items-center ${
+                                selectedCategory === cat.name
+                                  ? 'bg-brand-200 text-brand-600 font-bold'
+                                  : 'text-gray-700'
+                              }`}
+                            >
+                              {cat.name}
+                              {selectedCategory === cat.name && <span>✓</span>}
+                            </div>
+                            {Array.isArray(cat.subcategories) &&
+                              cat.subcategories
+                                .filter((s) =>
+                                  s
+                                    .toLowerCase()
+                                    .includes(categorySearch.toLowerCase())
+                                )
+                                .map((sub) => (
+                                  <div
+                                    key={sub}
+                                    onClick={() => {
+                                      setSelectedCategory(sub);
+                                      setShowCategoryDropdown(false);
+                                    }}
+                                    className={`px-8 py-2 text-sm cursor-pointer hover:bg-brand-100 flex justify-between items-center ${
+                                      selectedCategory === sub
+                                        ? 'bg-brand-100 text-brand-600 font-medium'
+                                        : 'text-gray-600'
+                                    }`}
+                                  >
+                                    {sub}
+                                    {selectedCategory === sub && <span>✓</span>}
+                                  </div>
+                                ))}
+                          </div>
+                        ))
+                    : filteredCategories.map((cat) => (
+                        <div
+                          key={cat}
+                          onClick={() => {
+                            setSelectedCategory(cat);
+                            setShowCategoryDropdown(false);
+                          }}
+                          className={`px-4 py-2 text-sm cursor-pointer hover:bg-brand-200 flex justify-between items-center ${selectedCategory === cat ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                        >
+                          {cat}
+                          {selectedCategory === cat && <span>✓</span>}
+                        </div>
+                      ))}
                 </div>
               </div>
             )}
@@ -222,7 +299,7 @@ export default function Catalogue() {
           <div className="relative flex-1 max-w-[200px]" ref={sortRef}>
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="w-full bg-[#0047AB] text-white py-2 px-4 rounded-lg font-bold flex justify-between items-center shadow-md hover:bg-blue-800 transition"
+              className="w-full bg-brand-600 text-white py-2 px-4 rounded-lg font-bold flex justify-between items-center shadow-md hover:bg-brand-500 transition"
             >
               {selectedSort} <span className="text-xs">▼</span>
             </button>
@@ -245,7 +322,7 @@ export default function Catalogue() {
                       setSelectedSort(option);
                       setShowSortDropdown(false);
                     }}
-                    className={`px-4 py-3 text-sm cursor-pointer hover:bg-blue-50 border-b border-gray-100 last:border-0 font-medium ${selectedSort === option ? 'bg-blue-50 text-[#0047AB]' : 'text-gray-700'}`}
+                    className={`px-4 py-3 text-sm cursor-pointer hover:bg-brand-200 border-b border-gray-100 last:border-0 font-medium ${selectedSort === option ? 'bg-brand-200 text-brand-600' : 'text-gray-700'}`}
                   >
                     {option}
                   </div>
@@ -265,11 +342,11 @@ export default function Catalogue() {
             No products match your filters.
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0 border border-gray-800 bg-white">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map((product) => (
               <div
                 key={product.id}
-                className="group relative border border-gray-800 p-4 hover:shadow-lg transition-all flex flex-col items-center text-center bg-[#cae6fa]"
+                className="group relative border border-gray-200 rounded-2xl pt-10 px-4 pb-6 hover:shadow-lg transition-all transform hover:-translate-y-1 flex flex-col items-center text-center bg-[#cae6fa] overflow-hidden min-h-[240px]"
               >
                 {/* Title */}
                 <h3 className="font-bold text-gray-900 text-sm mb-3">
@@ -306,7 +383,7 @@ export default function Catalogue() {
                   <span className="text-yellow-400 drop-shadow-sm">★</span>
                 </div>
                 {/* Edit / Delete Controls */}
-                <div className="absolute top-3 right-3 flex gap-2">
+                <div className="absolute top-3 right-4 flex gap-2 z-20">
                   <button
                     onClick={() => {
                       setEditingProduct(product);
@@ -319,15 +396,50 @@ export default function Catalogue() {
                       });
                       setShowModal(true);
                     }}
-                    className="bg-white/90 px-2 py-1 rounded text-xs font-semibold border hover:bg-white"
+                    className="bg-white/90 p-1.5 rounded-md text-xs font-semibold border hover:bg-white shadow-sm"
+                    aria-label="Edit product"
+                    title="Edit"
                   >
-                    Edit
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-4 h-4 text-gray-800"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                      />
+                    </svg>
                   </button>
                   <button
                     onClick={() => setProductToDelete(product)}
-                    className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold hover:bg-red-600"
+                    className="bg-red-500 text-white p-1.5 rounded-md hover:bg-red-600 shadow-sm"
+                    aria-label="Delete product"
+                    title="Delete"
                   >
-                    Delete
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-4 h-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"
+                      />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -360,13 +472,25 @@ export default function Catalogue() {
                     }
                   >
                     <option value="">Select category</option>
-                    {categories
-                      .filter((c) => c && c !== 'All')
-                      .map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
+                    {categoriesHierarchy && categoriesHierarchy.length > 0
+                      ? categoriesHierarchy.map((cat) => (
+                          <optgroup key={cat.name} label={cat.name}>
+                            <option value={cat.name}>{cat.name}</option>
+                            {Array.isArray(cat.subcategories) &&
+                              cat.subcategories.map((sub) => (
+                                <option key={sub} value={sub}>
+                                  {sub}
+                                </option>
+                              ))}
+                          </optgroup>
+                        ))
+                      : flatCategories
+                          .filter((c) => c && c !== 'All')
+                          .map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
                   </select>
                 </div>
                 <textarea
@@ -513,7 +637,7 @@ export default function Catalogue() {
                       toast.error(`Error: ${msg}`);
                     }
                   }}
-                  className="px-4 py-2 rounded bg-blue-600 text-white font-bold"
+                  className="px-4 py-2 rounded bg-brand-600 text-white font-bold"
                 >
                   Save
                 </button>

@@ -24,7 +24,7 @@ export default function UserProfileDropdown({ user }) {
           <img
             src={user.profile_image}
             alt={user.full_name}
-            className="w-10 h-10 rounded-full object-cover border-2 border-blue-900"
+            className="w-10 h-10 rounded-full object-cover border-2 border-brand-900"
             onError={(e) => {
               e.target.onerror = null;
               // Fallback to SVG by hiding the img and showing the div below?
@@ -33,7 +33,7 @@ export default function UserProfileDropdown({ user }) {
             }}
           />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center text-white border-2 border-blue-900">
+          <div className="w-10 h-10 rounded-full bg-brand-900 flex items-center justify-center text-white border-2 border-brand-900">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
@@ -56,7 +56,7 @@ export default function UserProfileDropdown({ user }) {
             {user.full_name}
           </span>
           {user.role !== 'BUSINESS' && (
-            <span className="text-xs font-bold text-blue-800 uppercase tracking-wider">
+            <span className="text-xs font-bold text-brand-800 uppercase tracking-wider">
               {user.role}
             </span>
           )}

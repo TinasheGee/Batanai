@@ -13,11 +13,11 @@ export default function BusinessLayout({ children, title }) {
     <div className="min-h-screen bg-transparent font-sans pb-10">
       <Header title={title} />
 
-      <div className="max-w-[1600px] mx-auto mt-8 grid grid-cols-1 lg:grid-cols-[260px_1fr_280px] gap-8 px-6">
+      <div className="max-w-[1600px] mx-auto mt-8 grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] gap-8 px-6">
         {/* LEFT SIDEBAR - PROFILE NAV */}
         <aside className="hidden lg:flex flex-col gap-5 sticky top-32 h-fit">
           <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
-            <h3 className="mt-0 mb-4 text-xl text-[#0047AB] font-bold text-center">
+            <h3 className="mt-0 mb-4 text-xl text-brand-600 font-bold text-center">
               Profile
             </h3>
 
@@ -26,8 +26,8 @@ export default function BusinessLayout({ children, title }) {
                 onClick={() => navigate('/home')}
                 className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all text-sm font-semibold shadow-sm ${
                   isActive('/home')
-                    ? 'bg-[#0047AB] text-white shadow-md'
-                    : 'bg-white hover:bg-blue-50 text-gray-700'
+                    ? 'bg-brand-600 text-white shadow-md'
+                    : 'bg-white hover:bg-brand-200 text-gray-700'
                 }`}
               >
                 <svg
@@ -49,8 +49,8 @@ export default function BusinessLayout({ children, title }) {
                 onClick={() => navigate('/catalogue')}
                 className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all text-sm font-semibold shadow-sm ${
                   isActive('/catalogue')
-                    ? 'bg-[#0047AB] text-white shadow-md'
-                    : 'bg-white hover:bg-blue-50 text-gray-700'
+                    ? 'bg-brand-600 text-white shadow-md'
+                    : 'bg-white hover:bg-brand-200 text-gray-700'
                 }`}
               >
                 <svg
@@ -77,8 +77,8 @@ export default function BusinessLayout({ children, title }) {
                 onClick={() => navigate('/portfolio')}
                 className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all text-sm font-semibold shadow-sm ${
                   isActive('/portfolio')
-                    ? 'bg-[#0047AB] text-white shadow-md'
-                    : 'bg-white hover:bg-blue-50 text-gray-700'
+                    ? 'bg-brand-600 text-white shadow-md'
+                    : 'bg-white hover:bg-brand-200 text-gray-700'
                 }`}
               >
                 <svg
@@ -101,8 +101,8 @@ export default function BusinessLayout({ children, title }) {
                 onClick={() => navigate('/contact-us')}
                 className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all text-sm font-semibold shadow-sm ${
                   isActive('/contact-us')
-                    ? 'bg-[#0047AB] text-white shadow-md'
-                    : 'bg-white hover:bg-blue-50 text-gray-700'
+                    ? 'bg-brand-600 text-white shadow-md'
+                    : 'bg-white hover:bg-brand-200 text-gray-700'
                 }`}
               >
                 <svg

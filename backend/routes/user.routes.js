@@ -10,6 +10,35 @@ const bcrypt = require('bcryptjs');
 router.get('/me', auth, async (req, res) => {
   try {
     const userId = req.user.id;
+    const role = (req.user.role || '').toLowerCase();
+
+    if (role === 'business') {
+      // Fetch business profile
+      const bRes = await pool.query(
+        `SELECT id, name, email, phone, category, description, is_active, is_verified, created_at FROM businesses WHERE id=$1`,
+        [userId]
+      );
+      if (bRes.rows.length === 0)
+        return res.status(404).json({ error: 'Business not found' });
+      const biz = bRes.rows[0];
+      // Normalize fields to match frontend expectations
+      const userObj = {
+        id: biz.id,
+        full_name: biz.name || '',
+        email: biz.email,
+        role: 'BUSINESS',
+        phone: biz.phone || null,
+        category: biz.category || null,
+        description: biz.description || null,
+        is_active: biz.is_active,
+        is_verified: biz.is_verified,
+        created_at: biz.created_at,
+      };
+      userObj.profile_image = `https://ui-avatars.com/api/?name=${encodeURIComponent(userObj.full_name)}&background=random&color=fff&rounded=true`;
+      return res.json(userObj);
+    }
+
+    // Default: regular users
     const userResult = await pool.query(
       `SELECT users.id, users.full_name, users.email, users.role, businesses.name as business_name 
        FROM users 

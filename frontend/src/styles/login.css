@@ -39,15 +39,14 @@ body {
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  max-height: 95vh;
-  overflow-y: scroll;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;
+  /* allow the card to grow naturally instead of forcing an internal scroll */
+  max-height: none;
+  overflow-y: visible;
   scroll-behavior: smooth;
 }
 
 .login-card::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none; /* keep hidden if any scroll appears */
 }
 
 /* ===== Title & Subtitle ===== */
@@ -200,6 +199,15 @@ body {
 /* ===== Small Screens ===== */
 @media (max-width: 380px) {
   .login-card {
-    padding: 28px 24px;
+    padding: 18px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 20px 18px;
+  }
+  .toggle-group {
+    gap: 20px;
   }
 }

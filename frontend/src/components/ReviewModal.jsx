@@ -182,7 +182,7 @@ export default function ReviewModal({
               onChange={(e) => setComment(e.target.value)}
               placeholder="Tell us about your experience..."
               rows="5"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none"
               disabled={submitting}
               required
             />
@@ -204,7 +204,7 @@ export default function ReviewModal({
             <button
               type="submit"
               disabled={submitting || rating === 0 || !comment.trim()}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>

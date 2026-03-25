@@ -45,6 +45,15 @@ export default function Messaging() {
     if (!socket) return;
 
     socket.on('receive_message', (message) => {
+      // Parse attachment if returned as JSON string
+      if (message.attachment && typeof message.attachment === 'string') {
+        try {
+          message.attachment = JSON.parse(message.attachment);
+        } catch (e) {
+          // ignore parse errors
+        }
+      }
+
       if (activeChat && activeChat.partner_id === message.sender_id) {
         setMessages((prev) => [...prev, message]);
         if (document.hasFocus()) {
@@ -122,7 +131,18 @@ export default function Messaging() {
   const fetchMessages = async (partnerId) => {
     try {
       const res = await api.get(`/messages/${partnerId}`);
-      setMessages(res.data);
+      // Normalize attachments (backend may return JSON strings)
+      const msgs = res.data.map((m) => {
+        if (m.attachment && typeof m.attachment === 'string') {
+          try {
+            return { ...m, attachment: JSON.parse(m.attachment) };
+          } catch (e) {
+            return m;
+          }
+        }
+        return m;
+      });
+      setMessages(msgs);
     } catch (err) {
       console.error(err);
     }
@@ -144,11 +164,22 @@ export default function Messaging() {
           product_id: attachment.id,
           snapshot: attachment,
         };
+        payload.message_type = 'product';
       }
 
       const res = await api.post('/messages/send', payload);
 
-      setMessages([...messages, { ...res.data, sender_type: 'me' }]);
+      // Normalize returned attachment if needed
+      const returned = res.data;
+      if (returned.attachment && typeof returned.attachment === 'string') {
+        try {
+          returned.attachment = JSON.parse(returned.attachment);
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      setMessages([...messages, { ...returned, sender_type: 'me' }]);
       setNewMessage('');
       setAttachment(null);
       fetchConversations();
@@ -206,9 +237,9 @@ export default function Messaging() {
                   onClick={() => handleSelectChat(conv)}
                   className={`p-4 flex items-center gap-3 cursor-pointer transition-colors border-l-4 ${
                     activeChat?.partner_id === conv.partner_id
-                      ? 'bg-blue-50 border-blue-500'
+                      ? 'bg-brand-200 border-brand-500'
                       : isUnread
-                        ? 'bg-white border-blue-400'
+                        ? 'bg-white border-brand-200'
                         : 'bg-white border-transparent hover:bg-gray-50'
                   }`}
                 >
@@ -265,10 +296,78 @@ export default function Messaging() {
                       <div
                         className={`px-4 py-2.5 rounded-2xl shadow-sm text-sm ${
                           isMe
-                            ? 'bg-blue-600 text-white rounded-br-sm'
+                            ? 'bg-brand-600 text-white rounded-br-sm'
                             : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
                         }`}
                       >
+                        {/* Render product attachment inside the message bubble when present */}
+                        {msg.attachment &&
+                          msg.attachment.type === 'product' && (
+                            <div className="flex items-center gap-3 mb-2 bg-white border border-gray-200 rounded-lg p-2 shadow-sm">
+                              <img
+                                src={
+                                  msg.attachment.snapshot?.image_url ||
+                                  msg.attachment.snapshot?.image ||
+                                  ''
+                                }
+                                alt={msg.attachment.snapshot?.name || 'product'}
+                                className="w-20 h-20 object-cover rounded-md"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-sm text-brand-700 truncate">
+                                  {msg.attachment.snapshot?.name}
+                                </div>
+                                <div className="flex items-center gap-3 mt-1">
+                                  {msg.attachment.snapshot?.price != null && (
+                                    <div className="text-sm text-green-700 font-bold">
+                                      $
+                                      {Number(
+                                        msg.attachment.snapshot.price
+                                      ).toLocaleString()}
+                                    </div>
+                                  )}
+
+                                  {/* Rating */}
+                                  {(msg.attachment.snapshot?.rating ||
+                                    msg.attachment.snapshot?.average_rating) !==
+                                    undefined && (
+                                    <div className="text-sm text-yellow-500 font-medium flex items-center gap-1">
+                                      <span>★</span>
+                                      <span className="text-gray-700">
+                                        {typeof (
+                                          msg.attachment.snapshot?.rating ??
+                                          msg.attachment.snapshot
+                                            ?.average_rating
+                                        ) === 'number'
+                                          ? (
+                                              msg.attachment.snapshot?.rating ??
+                                              msg.attachment.snapshot
+                                                ?.average_rating
+                                            ).toFixed(1)
+                                          : (msg.attachment.snapshot?.rating ??
+                                            msg.attachment.snapshot
+                                              ?.average_rating)}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {/* Distance */}
+                                  {msg.attachment.snapshot?.distance !==
+                                    undefined && (
+                                    <div className="text-sm text-gray-500">
+                                      {msg.attachment.snapshot.distance}
+                                      {msg.attachment.snapshot.distance_unit
+                                        ? ` ${msg.attachment.snapshot.distance_unit}`
+                                        : ''}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Product
+                              </div>
+                            </div>
+                          )}
                         {msg.content}
                       </div>
                       <span className="text-[10px] text-gray-400 mt-1 px-1">
@@ -320,12 +419,12 @@ export default function Messaging() {
                   placeholder="Type a message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1 bg-gray-100 border-0 text-gray-800 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-100 placeholder-gray-400 transition-all"
+                  className="flex-1 bg-gray-100 border-0 text-gray-800 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200 placeholder-gray-400 transition-all"
                 />
                 <button
                   type="submit"
                   disabled={!(newMessage.trim() || attachment)}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-blue-200"
+                  className="bg-brand-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-brand-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                 >
                   Send
                 </button>

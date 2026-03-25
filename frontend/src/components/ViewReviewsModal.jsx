@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
@@ -73,20 +74,20 @@ export default function ViewReviewsModal({
         }
       }
 
-      // Check which reviews current user has seconded
+      // Check which reviews current user has upvoted
       if (currentUserId) {
-        const secondedIds = new Set();
+        const upvotedIds = new Set();
         for (const review of reviewsData) {
           try {
-            const res = await api.get(`/reviews/${review.id}/check-second`);
-            if (res.data.hasSeconded) {
-              secondedIds.add(review.id);
+            const res = await api.get(`/reviews/${review.id}/vote`);
+            if (res.data.vote === 1) {
+              upvotedIds.add(review.id);
             }
           } catch (err) {
             // Ignore errors (user might not be authenticated)
           }
         }
-        setSecondedReviews(secondedIds);
+        setSecondedReviews(upvotedIds);
       }
     } catch (error) {
       console.error('Error fetching reviews:', error);
@@ -119,50 +120,60 @@ export default function ViewReviewsModal({
     }
 
     try {
-      const response = await api.post(`/reviews/${reviewId}/second`);
+      const response = await api.post(`/reviews/${reviewId}/vote`, { vote: 1 });
 
-      // Update the review's seconds count locally
+      // Update the review's up/down counts locally
       setReviews((prev) =>
         prev.map((review) =>
           review.id === reviewId
-            ? { ...review, seconds_count: response.data.seconds_count }
+            ? {
+                ...review,
+                upvotes_count: response.data.upvotes_count,
+                downvotes_count: response.data.downvotes_count,
+                seconds_count: response.data.upvotes_count,
+              }
             : review
         )
       );
 
-      // Add to seconded set
+      // Add to upvoted set
       setSecondedReviews((prev) => new Set([...prev, reviewId]));
 
-      toast.success('Review seconded!', { position: 'top-right' });
+      toast.success('Review upvoted!', { position: 'top-right' });
     } catch (error) {
-      const errorMsg = error.response?.data?.error || 'Failed to second review';
+      const errorMsg = error.response?.data?.error || 'Failed to upvote review';
       toast.error(errorMsg, { position: 'top-right' });
     }
   };
 
   const handleUnsecondReview = async (reviewId) => {
     try {
-      const response = await api.delete(`/reviews/${reviewId}/second`);
+      const response = await api.delete(`/reviews/${reviewId}/vote`);
 
-      // Update the review's seconds count locally
+      // Update the review's up/down counts locally
       setReviews((prev) =>
         prev.map((review) =>
           review.id === reviewId
-            ? { ...review, seconds_count: response.data.seconds_count }
+            ? {
+                ...review,
+                upvotes_count: response.data.upvotes_count,
+                downvotes_count: response.data.downvotes_count,
+                seconds_count: response.data.upvotes_count,
+              }
             : review
         )
       );
 
-      // Remove from seconded set
+      // Remove from upvoted set
       setSecondedReviews((prev) => {
         const newSet = new Set(prev);
         newSet.delete(reviewId);
         return newSet;
       });
 
-      toast.success('Review unsconded', { position: 'top-right' });
+      toast.success('Vote removed', { position: 'top-right' });
     } catch (error) {
-      toast.error('Failed to unsecond review', { position: 'top-right' });
+      toast.error('Failed to remove vote', { position: 'top-right' });
     }
   };
 
@@ -230,7 +241,7 @@ export default function ViewReviewsModal({
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <svg
-                className="animate-spin h-8 w-8 text-blue-600"
+                className="animate-spin h-8 w-8 text-brand-600"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -294,39 +305,55 @@ export default function ViewReviewsModal({
                       </div>
                     </div>
 
-                    {/* Second Button (Only for customers) */}
+                    {/* Upvote / Downvote (Only for customers) */}
                     {userRole === 'customer' && userId !== review.user_id && (
-                      <button
-                        onClick={() =>
-                          secondedReviews.has(review.id)
-                            ? handleUnsecondReview(review.id)
-                            : handleSecondReview(review.id, review.user_id)
-                        }
-                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                          secondedReviews.has(review.id)
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-white border border-blue-600 text-blue-600 hover:bg-blue-50'
-                        }`}
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill={
+                      <div className="flex items-center gap-2">
+                        {/* Upvote */}
+                        <button
+                          onClick={() =>
                             secondedReviews.has(review.id)
-                              ? 'currentColor'
-                              : 'none'
+                              ? handleUnsecondReview(review.id)
+                              : handleSecondReview(review.id, review.user_id)
                           }
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            secondedReviews.has(review.id)
+                              ? 'bg-brand-600 text-white hover:bg-brand-500'
+                              : 'bg-white border border-brand-600 text-brand-600 hover:bg-brand-200'
+                          }`}
+                          aria-label={
+                            secondedReviews.has(review.id)
+                              ? 'Remove upvote'
+                              : 'Upvote review'
+                          }
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-                          />
-                        </svg>
-                        <span>{review.seconds_count || 0}</span>
-                      </button>
+                          {/* Thumbs up (emoji) */}
+                          <span aria-hidden className="text-lg">
+                            {secondedReviews.has(review.id) ? '👍' : '👍'}
+                          </span>
+                          <span>
+                            {review.upvotes_count ?? review.seconds_count ?? 0}
+                          </span>
+                        </button>
+
+                        {/* Downvote (will remove upvote) */}
+                        <button
+                          onClick={() => {
+                            if (!secondedReviews.has(review.id)) {
+                              toast.error('You have not upvoted this review');
+                              return;
+                            }
+                            handleUnsecondReview(review.id);
+                          }}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
+                          aria-label="Downvote review"
+                        >
+                          {/* Thumbs down (emoji) */}
+                          <span aria-hidden className="text-lg">
+                            👎
+                          </span>
+                          <span>{review.downvotes_count ?? 0}</span>
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -343,9 +370,9 @@ export default function ViewReviewsModal({
                         >
                           <div className="flex items-start gap-3">
                             <div className="flex-shrink-0">
-                              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-brand-200 flex items-center justify-center">
                                 <svg
-                                  className="w-5 h-5 text-blue-600"
+                                  className="w-5 h-5 text-brand-600"
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                 >
@@ -359,10 +386,19 @@ export default function ViewReviewsModal({
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <p className="font-semibold text-sm text-blue-600">
-                                  {reply.business_name}
+                                <p className="font-semibold text-sm text-brand-600">
+                                  {reply.business_id ? (
+                                    <Link
+                                      to={`/business/${reply.business_id}`}
+                                      className="hover:underline"
+                                    >
+                                      {reply.business_name}
+                                    </Link>
+                                  ) : (
+                                    reply.business_name
+                                  )}
                                 </p>
-                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                <span className="text-xs bg-brand-200 text-brand-600 px-2 py-0.5 rounded">
                                   Business
                                 </span>
                               </div>

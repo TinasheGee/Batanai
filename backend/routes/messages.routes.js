@@ -73,17 +73,23 @@ router.get('/:partnerId', auth, async (req, res) => {
 router.post('/send', auth, async (req, res) => {
   try {
     const senderId = req.user.id;
-    const { receiverId, content } = req.body;
+    const { receiverId, content, attachment, message_type } = req.body;
 
-    if (!receiverId || !content) {
+    if (!receiverId || (!content && !attachment)) {
       return res
         .status(400)
-        .json({ error: 'Receiver and content are required' });
+        .json({ error: 'Receiver and content or attachment are required' });
     }
 
     const newMessage = await pool.query(
-      `INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3) RETURNING *`,
-      [senderId, receiverId, content]
+      `INSERT INTO messages (sender_id, receiver_id, content, attachment, message_type) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [
+        senderId,
+        receiverId,
+        content || null,
+        attachment ? JSON.stringify(attachment) : null,
+        message_type || null,
+      ]
     );
 
     const message = newMessage.rows[0];
@@ -95,6 +101,7 @@ router.post('/send', auth, async (req, res) => {
       io.to(receiverId).emit('receive_message', {
         ...message,
         sender_type: 'them', // How the receiver sees it
+        attachment: message.attachment ? message.attachment : null,
       });
 
       // Optional: Emit to sender's other devices

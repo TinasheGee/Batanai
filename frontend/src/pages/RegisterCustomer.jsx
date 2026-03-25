@@ -1,6 +1,7 @@
 // src/pages/RegisterCustomer.js
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import TermsContentCustomer from '../components/TermsContentCustomer';
 import logo from '../styles/images/logo.png';
 import '../styles/login.css';
 import '../styles/register.css';
@@ -17,16 +18,21 @@ export default function RegisterCustomer() {
     phone: '',
     password: '',
     confirmPassword: '',
+    agree: false,
   });
 
   // Modal for unsaved data
   const [showModal, setShowModal] = useState(false);
   const [navigatePath, setNavigatePath] = useState('');
+  const [showTerms, setShowTerms] = useState(false);
 
   // Handle input changes
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   // Navigate with modal warning if fields have data
@@ -59,6 +65,10 @@ export default function RegisterCustomer() {
       !formData.confirmPassword
     ) {
       alert('Please fill in all required fields.');
+      return;
+    }
+    if (!formData.agree) {
+      alert('You must agree to the terms and conditions.');
       return;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -98,7 +108,7 @@ export default function RegisterCustomer() {
   };
 
   return (
-    <div className="login-page">
+    <div className="login-page" style={{ overflowY: 'hidden' }}>
       <div className="login-card">
         <h1 className="login-title">Create your account</h1>
         <h2>
@@ -181,7 +191,23 @@ export default function RegisterCustomer() {
             onChange={handleChange}
           />
           <label className="checkbox-row">
-            <input type="checkbox" /> <span>Allow location tracking</span>
+            <input
+              type="checkbox"
+              name="agree"
+              checked={formData.agree}
+              onChange={handleChange}
+            />
+            <span>
+              I have read and agree to the{' '}
+              <button
+                type="button"
+                onClick={() => setShowTerms(true)}
+                className="text-brand-600 hover:underline bg-transparent border-0 p-0"
+              >
+                Customer Terms and Conditions
+              </button>{' '}
+              and Privacy Policy.
+            </span>
           </label>
           <button className="login-submit">Create account</button>
         </form>
@@ -208,6 +234,74 @@ export default function RegisterCustomer() {
               </button>
               <button style={modalCancelBtn} onClick={cancelLeave}>
                 No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Terms Modal */}
+      {showTerms && (
+        <div
+          style={backdropStyle}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowTerms(false);
+          }}
+        >
+          <div
+            style={{
+              ...modalCardStyle,
+              maxWidth: '900px',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              textAlign: 'left',
+              padding: '18px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h3 style={{ margin: 0 }}>Customer Terms</h3>
+              <button
+                onClick={() => setShowTerms(false)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: '18px',
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <TermsContentCustomer />
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 8,
+                marginTop: 12,
+              }}
+            >
+              <button
+                onClick={() => {
+                  setFormData((p) => ({ ...p, agree: true }));
+                  setShowTerms(false);
+                }}
+                style={modalConfirmBtn}
+              >
+                I Agree
+              </button>
+              <button
+                onClick={() => setShowTerms(false)}
+                style={modalCancelBtn}
+              >
+                Close
               </button>
             </div>
           </div>

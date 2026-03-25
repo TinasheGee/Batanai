@@ -289,3 +289,29 @@ body {
     height: 85px;
   }
 }
+
+/* Two-column responsive form grid for register pages */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.form-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Prevent images inside the card from causing horizontal overflow */
+.login-card img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}

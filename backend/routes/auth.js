@@ -88,8 +88,52 @@ router.post('/login', async (req, res) => {
     );
 
     if (userResult.rows.length === 0) {
-      console.log('❌ User not found in database');
-      return res.status(400).json({ error: 'Invalid credentials' });
+      // If not found in users table, try businesses table (business accounts)
+      const bizResult = await pool.query(
+        'SELECT * FROM businesses WHERE email = $1',
+        [email]
+      );
+      if (bizResult.rows.length === 0) {
+        console.log('❌ User not found in users or businesses table');
+        return res.status(400).json({ error: 'Invalid credentials' });
+      }
+
+      const biz = bizResult.rows[0];
+      const isBizMatch = await bcrypt.compare(password, biz.password_hash);
+      if (!isBizMatch) {
+        console.log('❌ Business password mismatch');
+        return res.status(400).json({ error: 'Invalid credentials' });
+      }
+
+      // Ensure business is active and verified
+      if (biz.is_active === false) {
+        console.log('❌ Business account is inactive');
+        return res.status(403).json({ error: 'Business account is inactive' });
+      }
+
+      if (biz.is_verified === false) {
+        console.log('❌ Business account is not verified');
+        return res
+          .status(403)
+          .json({ error: 'Business account is not verified' });
+      }
+
+      console.log(`✅ Login successful for business ID: ${biz.id}`);
+      const token = jwt.sign(
+        { id: biz.id, role: 'business' },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      return res.json({
+        token,
+        user: {
+          id: biz.id,
+          role: 'business',
+          email: biz.email,
+          name: biz.name,
+        },
+      });
     }
 
     const user = userResult.rows[0];

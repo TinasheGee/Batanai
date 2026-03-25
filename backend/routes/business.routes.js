@@ -41,6 +41,64 @@ router.get('/promotions', async (req, res) => {
 });
 
 /* =========================
+   GET AVAILABLE CATEGORIES
+   Returns a sorted list of distinct categories found in businesses and products
+========================= */
+router.get('/categories', async (req, res) => {
+  try {
+    // Prefer structured categories table when available
+    const rows = await pool.query(
+      `SELECT id, name, parent_id FROM categories ORDER BY name`
+    );
+
+    if (rows.rows && rows.rows.length) {
+      const map = {};
+      rows.rows.forEach((r) => {
+        map[r.id] = {
+          id: r.id,
+          name: r.name,
+          parent_id: r.parent_id,
+          subcategories: [],
+        };
+      });
+      const roots = [];
+      Object.values(map).forEach((node) => {
+        if (node.parent_id) {
+          const parent = map[node.parent_id];
+          if (parent) parent.subcategories.push(node.name);
+        } else {
+          roots.push(node);
+        }
+      });
+      // Normalize to { name, subcategories[] }
+      const categories = roots.map((r) => ({
+        name: r.name,
+        subcategories: r.subcategories,
+      }));
+      return res.json({ categories });
+    }
+
+    // Fallback: derive categories from businesses/products
+    const q = `
+      SELECT category FROM (
+        SELECT DISTINCT category FROM businesses WHERE category IS NOT NULL
+        UNION
+        SELECT DISTINCT category FROM products WHERE category IS NOT NULL
+      ) t
+      ORDER BY category
+    `;
+    const result = await pool.query(q);
+    const categories = result.rows.map((r) => r.category).filter(Boolean);
+    res.json({
+      categories: categories.map((c) => ({ name: c, subcategories: [] })),
+    });
+  } catch (err) {
+    console.error('Failed to fetch categories:', err.message);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
+/* =========================
    SEARCH BUSINESSES — WEIGHTED RELEVANCE + FILTERS + PAGINATION + ROUNDED AVG
 ========================= */
 router.get('/', async (req, res) => {
@@ -229,15 +287,27 @@ router.post('/register', async (req, res) => {
     // Hash password securely
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Set trial end date = 3 months from today
-    const trialEnd = new Date();
-    trialEnd.setMonth(trialEnd.getMonth() + 3);
+    // Compute trial end date according to promotion rules:
+    // - Businesses signing up on or before 2026-06-30 get free until 2026-07-31 (subscription starts 2026-08-01)
+    // - Businesses signing up after 2026-06-30 get one month free from their signup date
+    const now = new Date();
+    const cutoff = new Date(Date.UTC(2026, 5, 30, 23, 59, 59)); // 2026-06-30 UTC (months are 0-based)
+    let trialEnd;
+    if (now.getTime() <= cutoff.getTime()) {
+      // Free through end of July 2026 (local time end of day)
+      trialEnd = new Date(2026, 6, 31, 23, 59, 59); // July is month 6
+    } else {
+      // One month free from signup date
+      trialEnd = new Date(now);
+      trialEnd.setMonth(trialEnd.getMonth() + 1);
+    }
 
     // Monthly subscription fee after trial
     const monthlyFee = 30;
 
     // Resolve mall: prefer mall_id, else create/find by mall_name
     let resolvedMallId = null;
+    let newMallCreated = false;
     if (mall_id) {
       const m = await pool.query('SELECT id FROM malls WHERE id=$1', [mall_id]);
       if (!m.rows.length) {
@@ -264,41 +334,64 @@ router.post('/register', async (req, res) => {
           ]
         );
         resolvedMallId = createdMall.rows[0].id;
+        newMallCreated = true;
       }
     }
 
     // Insert business into database (include mall_id nullable)
-    const result = await pool.query(
+    // If the user created a new mall during signup, mark the new business inactive
+    // until an admin verifies the mall. Otherwise activate immediately.
+    const isActive = newMallCreated ? false : true;
+
+    console.debug('Register business values:', {
+      name,
+      email,
+      resolvedMallId,
+      newMallCreated,
+      isActive,
+      trialEnd: trialEnd ? trialEnd.toISOString() : null,
+      monthlyFee,
+    });
+
+    const insertResult = await pool.query(
       `INSERT INTO businesses
-   (name, description, category, location, phone, email,
-    password_hash, logo_url,
-    is_active, is_verified,
-    trial_end_date, monthly_fee, mall_id)
-   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,true,false,$9,$10,$11)
-   RETURNING id, name, email`,
+       (name, description, category, location, email,
+        password_hash, logo_url,
+        is_active, is_verified,
+        trial_end_date, monthly_fee, mall_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,false,$9,$10,$11)
+       RETURNING id, name, email`,
       [
         name,
         description || null,
         category || null,
         location || null,
-        phone || null,
         email,
         hashedPassword,
         logo_url,
+        isActive,
         trialEnd,
         monthlyFee,
         resolvedMallId,
       ]
     );
 
+    const respMessage = newMallCreated
+      ? `Business registered and pending admin approval (mall verification). Free period until ${trialEnd.toISOString()}`
+      : `Business registered successfully. Free period until ${trialEnd.toISOString()}`;
+
     res.status(201).json({
-      message: 'Business registered successfully with 3-month free trial',
-      business: result.rows[0],
+      message: respMessage,
+      business: insertResult.rows[0],
+      trial_end_date: trialEnd,
+      pending_admin_approval: newMallCreated,
     });
   } catch (err) {
-    console.error('Business registration error:', err.message);
+    console.error('Business registration error:', err);
     res.status(500).json({
-      error: 'Failed to register business',
+      error: err.message || 'Failed to register business',
+      detail: err.detail || null,
+      code: err.code || null,
     });
   }
 });
@@ -565,7 +658,70 @@ router.post(
         [businessId, name, description, price, unit, category, image]
       );
 
-      res.status(201).json(product.rows[0]);
+      const created = product.rows[0];
+
+      // If this product includes promotion fields, notify followers
+      const promotionType =
+        req.body.promotion_type || req.body.promotionType || null;
+      const discount =
+        req.body.discount_percent || req.body.discountPercent || null;
+
+      if (promotionType || discount) {
+        try {
+          // Find followers
+          const f = await pool.query(
+            'SELECT follower_id FROM follows WHERE business_id=$1',
+            [businessId]
+          );
+          const followers = f.rows.map((r) => r.follower_id);
+          if (followers.length) {
+            // Ensure notifications table exists
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS notifications (
+                  id SERIAL PRIMARY KEY,
+                  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                  business_id INTEGER REFERENCES businesses(id) ON DELETE CASCADE,
+                  type VARCHAR(50),
+                  title TEXT,
+                  message TEXT,
+                  data JSONB,
+                  is_read BOOLEAN DEFAULT FALSE,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+              `);
+
+            const title = `New promotion from ${created.name || 'a business'}`;
+            const message = `${created.name || 'A business'} published a new promotion.`;
+            for (const uid of followers) {
+              const notif = await pool.query(
+                'INSERT INTO notifications (user_id,business_id,type,title,message,data) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
+                [
+                  uid,
+                  businessId,
+                  'promotion',
+                  title,
+                  message,
+                  { productId: created.id },
+                ]
+              );
+              // Emit via socket.io if available
+              try {
+                const io = req.app.get('io');
+                if (io) io.to(String(uid)).emit('notification', notif.rows[0]);
+              } catch (e) {
+                console.warn('Socket emit failed:', e.message);
+              }
+            }
+          }
+        } catch (e) {
+          console.error(
+            'Failed to notify followers about promotion:',
+            e.message
+          );
+        }
+      }
+
+      res.status(201).json(created);
     } catch (err) {
       console.error('Add product error:', err.message);
       res.status(500).json({ error: err.message || 'Failed to add product' });

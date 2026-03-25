@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import api from '../api/axios';
@@ -38,6 +38,8 @@ export default function HomepageBusiness() {
   const [selectedMallFilter, setSelectedMallFilter] = useState('');
   const [role, setRole] = useState(null);
   const [businessProfile, setBusinessProfile] = useState(null);
+  const [categoriesHierarchy, setCategoriesHierarchy] = useState([]);
+  const [flatCategories, setFlatCategories] = useState(['All']);
 
   // Filtering & Sorting State
   const [searchTerm, setSearchTerm] = useState('');
@@ -164,11 +166,38 @@ export default function HomepageBusiness() {
   };
 
   // -- 1. Derive Unique Categories --
-  // Assuming business object has a 'category' field. If not, we use 'Uncategorized'
-  const categories = [
+  // -- 1. Derive Unique Categories --
+  // Prefer global categories when available, otherwise fallback to promotions-derived
+  const productDerivedCategories = [
     'All',
     ...new Set(promotions.map((p) => p.category || 'Uncategorized')),
   ];
+
+  const categories =
+    flatCategories && flatCategories.length > 0
+      ? flatCategories
+      : productDerivedCategories;
+
+  // Load global categories
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await api.get('/business/categories');
+        if (res.data && Array.isArray(res.data.categories)) {
+          setCategoriesHierarchy(res.data.categories);
+          const flat = ['All'];
+          res.data.categories.forEach((c) => {
+            if (c && c.name) flat.push(c.name);
+            if (Array.isArray(c.subcategories)) flat.push(...c.subcategories);
+          });
+          setFlatCategories(flat);
+        }
+      } catch (e) {
+        console.warn('Failed to load categories', e?.message || e);
+      }
+    };
+    loadCategories();
+  }, []);
 
   // -- 2. Filter & Sort Logic --
   const filteredPromotions = promotions
@@ -294,7 +323,7 @@ export default function HomepageBusiness() {
                   placeholder="Search products..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                 />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -341,19 +370,46 @@ export default function HomepageBusiness() {
                     </svg>
                   </button>
                   {openCategoryMenu && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20 max-h-60 overflow-y-auto">
-                      {categories.map((cat) => (
-                        <button
-                          key={cat}
-                          onClick={() => {
-                            setSelectedCategory(cat);
-                            setOpenCategoryMenu(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 transition ${selectedCategory === cat ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700'}`}
-                        >
-                          {cat}
-                        </button>
-                      ))}
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20 max-h-40 overflow-y-auto scrollbar-thin">
+                      {categoriesHierarchy && categoriesHierarchy.length > 0
+                        ? categoriesHierarchy.map((cat) => (
+                            <div key={cat.name}>
+                              <button
+                                onClick={() => {
+                                  setSelectedCategory(cat.name);
+                                  setOpenCategoryMenu(false);
+                                }}
+                                className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-200 transition ${selectedCategory === cat.name ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                              >
+                                {cat.name}
+                              </button>
+                              {Array.isArray(cat.subcategories) &&
+                                cat.subcategories.map((sub) => (
+                                  <button
+                                    key={sub}
+                                    onClick={() => {
+                                      setSelectedCategory(sub);
+                                      setOpenCategoryMenu(false);
+                                    }}
+                                    className={`w-full text-left px-6 py-1 text-xs hover:bg-brand-100 transition ${selectedCategory === sub ? 'bg-brand-100 text-brand-600 font-medium' : 'text-gray-600'}`}
+                                  >
+                                    {sub}
+                                  </button>
+                                ))}
+                            </div>
+                          ))
+                        : categories.map((cat) => (
+                            <button
+                              key={cat}
+                              onClick={() => {
+                                setSelectedCategory(cat);
+                                setOpenCategoryMenu(false);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-200 transition ${selectedCategory === cat ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                            >
+                              {cat}
+                            </button>
+                          ))}
                     </div>
                   )}
                 </div>
@@ -387,7 +443,7 @@ export default function HomepageBusiness() {
                           setSortOption('default');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-brand-200 text-gray-700"
                       >
                         Default
                       </button>
@@ -396,7 +452,7 @@ export default function HomepageBusiness() {
                           setSortOption('name-asc');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-brand-200 text-gray-700"
                       >
                         Name (A-Z)
                       </button>
@@ -405,7 +461,7 @@ export default function HomepageBusiness() {
                           setSortOption('name-desc');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-brand-200 text-gray-700"
                       >
                         Name (Z-A)
                       </button>
@@ -414,7 +470,7 @@ export default function HomepageBusiness() {
                           setSortOption('price-asc');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-brand-200 text-gray-700"
                       >
                         Price Low-High
                       </button>
@@ -423,7 +479,7 @@ export default function HomepageBusiness() {
                           setSortOption('price-desc');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-brand-200 text-gray-700"
                       >
                         Price High-Low
                       </button>
@@ -432,7 +488,7 @@ export default function HomepageBusiness() {
                           setSortOption('distance-asc');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-brand-200 text-gray-700"
                       >
                         Closest
                       </button>
@@ -476,10 +532,10 @@ export default function HomepageBusiness() {
               {sortOption === 'distance-asc' && (
                 <div className="bg-gray-100 rounded-xl px-3 py-2 border border-gray-300">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-bold text-blue-900">
+                    <span className="text-xs font-bold text-brand-900">
                       Range
                     </span>
-                    <span className="text-xs font-bold bg-white px-2 py-0.5 rounded shadow-sm text-blue-800">
+                    <span className="text-xs font-bold bg-white px-2 py-0.5 rounded shadow-sm text-brand-800">
                       {maxDistance} km
                     </span>
                   </div>
@@ -489,7 +545,7 @@ export default function HomepageBusiness() {
                     max="100"
                     value={maxDistance}
                     onChange={(e) => setMaxDistance(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-brand-600"
                   />
                   <div className="flex justify-between text-[10px] text-gray-800 mt-1">
                     <span>1km</span>
@@ -510,14 +566,14 @@ export default function HomepageBusiness() {
           // BUSINESS SIDEBAR
           <aside className="hidden lg:flex flex-col gap-5 sticky top-32 h-fit">
             <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
-              <h3 className="mt-0 mb-4 text-xl text-[#0047AB] font-bold text-center">
+              <h3 className="mt-0 mb-4 text-xl text-brand-600 font-bold text-center">
                 Profile
               </h3>
 
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => navigate('/home')}
-                  className="flex items-center gap-3 w-full p-3 rounded-xl bg-[#0047AB] text-white hover:bg-blue-800 transition-all text-sm font-semibold shadow-md"
+                  className="flex items-center gap-3 w-full p-3 rounded-xl bg-brand-600 text-white hover:bg-brand-500 transition-all text-sm font-semibold shadow-md"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -536,7 +592,7 @@ export default function HomepageBusiness() {
                 </button>
                 <button
                   onClick={() => navigate('/catalogue')}
-                  className="flex items-center gap-3 w-full p-3 rounded-xl bg-white hover:bg-blue-50 hover:text-blue-600 border border-transparent hover:border-blue-100 text-gray-700 transition-all text-sm font-semibold shadow-sm"
+                  className="flex items-center gap-3 w-full p-3 rounded-xl bg-white hover:bg-brand-200 hover:text-brand-600 border border-transparent hover:border-brand-200 text-gray-700 transition-all text-sm font-semibold shadow-sm"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -560,7 +616,7 @@ export default function HomepageBusiness() {
                 </button>
                 <button
                   onClick={() => navigate('/portfolio')}
-                  className="flex items-center gap-3 w-full p-3 rounded-xl bg-white hover:bg-blue-50 hover:text-blue-600 border border-transparent hover:border-blue-100 text-gray-700 transition-all text-sm font-semibold shadow-sm"
+                  className="flex items-center gap-3 w-full p-3 rounded-xl bg-white hover:bg-brand-200 hover:text-brand-600 border border-transparent hover:border-brand-200 text-gray-700 transition-all text-sm font-semibold shadow-sm"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -587,7 +643,7 @@ export default function HomepageBusiness() {
                 </button>
                 <button
                   onClick={() => navigate('/contact-us')}
-                  className="flex items-center gap-3 w-full p-3 rounded-xl bg-white hover:bg-blue-50 hover:text-blue-600 border border-transparent hover:border-blue-100 text-gray-700 transition-all text-sm font-semibold shadow-sm"
+                  className="flex items-center gap-3 w-full p-3 rounded-xl bg-white hover:bg-brand-200 hover:text-brand-600 border border-transparent hover:border-brand-200 text-gray-700 transition-all text-sm font-semibold shadow-sm"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -623,7 +679,7 @@ export default function HomepageBusiness() {
                     placeholder="Search"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                   />
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -666,19 +722,46 @@ export default function HomepageBusiness() {
                     </svg>
                   </button>
                   {openCategoryMenu && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-10">
-                      {categories.map((cat) => (
-                        <button
-                          key={cat}
-                          onClick={() => {
-                            setSelectedCategory(cat);
-                            setOpenCategoryMenu(false);
-                          }}
-                          className={`w-full text-left px-4 py-2 text-sm hover:bg-blue-50 transition ${selectedCategory === cat ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700'}`}
-                        >
-                          {cat}
-                        </button>
-                      ))}
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-10 max-h-40 overflow-y-auto scrollbar-thin">
+                      {categoriesHierarchy && categoriesHierarchy.length > 0
+                        ? categoriesHierarchy.map((cat) => (
+                            <div key={cat.name}>
+                              <button
+                                onClick={() => {
+                                  setSelectedCategory(cat.name);
+                                  setOpenCategoryMenu(false);
+                                }}
+                                className={`w-full text-left px-4 py-2 text-sm hover:bg-brand-200 transition ${selectedCategory === cat.name ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                              >
+                                {cat.name}
+                              </button>
+                              {Array.isArray(cat.subcategories) &&
+                                cat.subcategories.map((sub) => (
+                                  <button
+                                    key={sub}
+                                    onClick={() => {
+                                      setSelectedCategory(sub);
+                                      setOpenCategoryMenu(false);
+                                    }}
+                                    className={`w-full text-left px-8 py-2 text-sm hover:bg-brand-100 transition ${selectedCategory === sub ? 'bg-brand-100 text-brand-600 font-medium' : 'text-gray-600'}`}
+                                  >
+                                    {sub}
+                                  </button>
+                                ))}
+                            </div>
+                          ))
+                        : categories.map((cat) => (
+                            <button
+                              key={cat}
+                              onClick={() => {
+                                setSelectedCategory(cat);
+                                setOpenCategoryMenu(false);
+                              }}
+                              className={`w-full text-left px-4 py-2 text-sm hover:bg-brand-200 transition ${selectedCategory === cat ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                            >
+                              {cat}
+                            </button>
+                          ))}
                     </div>
                   )}
                 </div>
@@ -745,7 +828,7 @@ export default function HomepageBusiness() {
                           setSortOption('default');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-brand-200 text-gray-700"
                       >
                         Default
                       </button>
@@ -754,7 +837,7 @@ export default function HomepageBusiness() {
                           setSortOption('name-asc');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-brand-200 text-gray-700"
                       >
                         Name (A-Z)
                       </button>
@@ -763,7 +846,7 @@ export default function HomepageBusiness() {
                           setSortOption('name-desc');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-brand-200 text-gray-700"
                       >
                         Name (Z-A)
                       </button>
@@ -772,7 +855,7 @@ export default function HomepageBusiness() {
                           setSortOption('price-asc');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-brand-200 text-gray-700"
                       >
                         Price (Low to High)
                       </button>
@@ -781,7 +864,7 @@ export default function HomepageBusiness() {
                           setSortOption('price-desc');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-brand-200 text-gray-700"
                       >
                         Price (High to Low)
                       </button>
@@ -790,7 +873,7 @@ export default function HomepageBusiness() {
                           setSortOption('distance-asc');
                           setOpenSortMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 text-gray-700"
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-brand-200 text-gray-700"
                       >
                         Closest to Me
                       </button>
@@ -802,10 +885,10 @@ export default function HomepageBusiness() {
                 {sortOption === 'distance-asc' && (
                   <div className="bg-gray-100 rounded-xl px-4 py-3 border border-gray-300">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-bold text-blue-900">
+                      <span className="text-sm font-bold text-brand-900">
                         Range
                       </span>
-                      <span className="text-xs font-bold bg-white px-2 py-0.5 rounded shadow-sm text-blue-800">
+                      <span className="text-xs font-bold bg-white px-2 py-0.5 rounded shadow-sm text-brand-800">
                         {maxDistance} km
                       </span>
                     </div>
@@ -815,7 +898,7 @@ export default function HomepageBusiness() {
                       max="100"
                       value={maxDistance}
                       onChange={(e) => setMaxDistance(Number(e.target.value))}
-                      className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-brand-600"
                     />
                     <div className="flex justify-between text-[10px] text-gray-800 mt-1">
                       <span>1km</span>
@@ -834,7 +917,7 @@ export default function HomepageBusiness() {
             /* BUSINESS HOMEPAGE CONTENT - REVIEWS DASHBOARD */
             <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/60 h-full">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-[#0047AB]">
+                <h2 className="text-2xl font-bold text-brand-600">
                   Our Reviews
                 </h2>
                 <div className="flex items-center gap-2">
@@ -858,14 +941,14 @@ export default function HomepageBusiness() {
                         activeReviewDropdown === 'sort' ? null : 'sort'
                       )
                     }
-                    className="w-full bg-[#0047AB] text-white py-2 px-4 rounded-lg font-bold flex justify-between items-center shadow-md focus:outline-none"
+                    className="w-full bg-brand-600 text-white py-2 px-4 rounded-lg font-bold flex justify-between items-center shadow-md focus:outline-none"
                   >
                     {reviewSort} <span className="text-xs">▼</span>
                   </button>
 
                   {activeReviewDropdown === 'sort' && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-blue-900 rounded-lg shadow-xl overflow-hidden z-30">
-                      <div className="bg-blue-100 px-4 py-2 border-b border-blue-200 font-bold text-[#0047AB] flex justify-between items-center">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-brand-900 rounded-lg shadow-xl overflow-hidden z-30">
+                      <div className="bg-brand-200 px-4 py-2 border-b border-brand-200 font-bold text-brand-600 flex justify-between items-center">
                         <span>{reviewSort}</span>
                         <span>✓</span>
                       </div>
@@ -895,7 +978,7 @@ export default function HomepageBusiness() {
                         activeReviewDropdown === 'filter' ? null : 'filter'
                       )
                     }
-                    className="w-full bg-[#0047AB] text-white py-2 px-4 rounded-lg font-bold flex justify-between items-center shadow-md focus:outline-none"
+                    className="w-full bg-brand-600 text-white py-2 px-4 rounded-lg font-bold flex justify-between items-center shadow-md focus:outline-none"
                   >
                     {typeof reviewRatingFilter === 'string'
                       ? reviewRatingFilter
@@ -904,9 +987,9 @@ export default function HomepageBusiness() {
                   </button>
 
                   {activeReviewDropdown === 'filter' && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-blue-900 rounded-lg shadow-xl overflow-hidden z-30">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-brand-900 rounded-lg shadow-xl overflow-hidden z-30">
                       {/* Selected Item Header Style per image */}
-                      <div className="bg-blue-100 px-4 py-2 border-b border-blue-200 font-bold text-[#0047AB] flex justify-between items-center">
+                      <div className="bg-brand-200 px-4 py-2 border-b border-brand-200 font-bold text-brand-600 flex justify-between items-center">
                         <div className="flex items-center gap-2">
                           {typeof reviewRatingFilter !== 'string' ? (
                             <>
@@ -1001,7 +1084,7 @@ export default function HomepageBusiness() {
                                 setReplyingTo(review.id);
                               }
                             }}
-                            className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg shadow hover:bg-blue-700"
+                            className="bg-brand-600 text-white text-xs px-3 py-1.5 rounded-lg shadow hover:bg-brand-500"
                           >
                             {replyingTo === review.id ? 'Cancel' : 'Reply'}
                           </button>
@@ -1029,7 +1112,7 @@ export default function HomepageBusiness() {
                             </button>
                             <button
                               onClick={() => handleReplySubmit(review.id)}
-                              className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                              className="px-3 py-1.5 text-xs rounded-lg bg-brand-600 text-white hover:bg-brand-500"
                             >
                               Submit Reply
                             </button>
@@ -1040,15 +1123,24 @@ export default function HomepageBusiness() {
                       {/* Display Replies */}
                       {reviewReplies[review.id] &&
                         reviewReplies[review.id].length > 0 && (
-                          <div className="mt-4 pl-4 border-l-2 border-blue-200 space-y-3">
+                          <div className="mt-4 pl-4 border-l-2 border-brand-200 space-y-3">
                             {reviewReplies[review.id].map((reply) => (
                               <div
                                 key={reply.id}
-                                className="bg-blue-50 rounded-lg p-3"
+                                className="bg-brand-200 rounded-lg p-3"
                               >
                                 <div className="flex items-center gap-2 mb-2">
-                                  <span className="font-bold text-sm text-blue-800">
-                                    {reply.business_name}
+                                  <span className="font-bold text-sm text-brand-800">
+                                    {reply.business_id ? (
+                                      <Link
+                                        to={`/business/${reply.business_id}`}
+                                        className="hover:underline"
+                                      >
+                                        {reply.business_name}
+                                      </Link>
+                                    ) : (
+                                      reply.business_name
+                                    )}
                                   </span>
                                   <span className="text-xs text-gray-800">
                                     {new Date(
@@ -1081,7 +1173,7 @@ export default function HomepageBusiness() {
                       <div className="flex items-center mb-4 pb-3 border-b border-gray-100">
                         {shop.logo_url ? (
                           <button
-                            onClick={() => navigate('/contact-us')}
+                            onClick={() => navigate(`/business/${shop.id}`)}
                             className="p-0 bg-transparent border-0 cursor-pointer mr-3"
                           >
                             <img
@@ -1103,7 +1195,16 @@ export default function HomepageBusiness() {
                               overflow: 'hidden',
                             }}
                           >
-                            {shop.business_name}
+                            {shop.id ? (
+                              <Link
+                                to={`/business/${shop.id}`}
+                                className="hover:underline text-gray-900"
+                              >
+                                {shop.business_name}
+                              </Link>
+                            ) : (
+                              shop.business_name
+                            )}
                           </div>
                           {shop.mall_name && (
                             <div className="text-sm text-gray-800 mt-0.5">
@@ -1142,7 +1243,7 @@ export default function HomepageBusiness() {
                                       product.promotion_type === 'Discount'
                                         ? 'bg-yellow-400 text-black'
                                         : product.promotion_type === 'Deal'
-                                          ? 'bg-blue-600 text-white'
+                                          ? 'bg-brand-600 text-white'
                                           : 'bg-green-500 text-white'
                                     }`}
                                   >
@@ -1168,7 +1269,7 @@ export default function HomepageBusiness() {
                                   <span className="line-through text-gray-800 text-sm font-medium">
                                     ${(Number(product.price) * 1.25).toFixed(2)}
                                   </span>
-                                  <span className="font-extrabold text-[#0047AB] text-xl bg-blue-50 px-3 py-1 rounded-lg">
+                                  <span className="font-extrabold text-brand-600 text-xl bg-brand-200 px-3 py-1 rounded-lg">
                                     ${Number(product.price).toFixed(2)}
                                   </span>
                                 </div>
@@ -1196,7 +1297,7 @@ export default function HomepageBusiness() {
                                         href={`https://www.google.com/maps/search/?api=1&query=${shop.latitude},${shop.longitude}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="font-medium text-blue-800 hover:underline"
+                                        className="font-medium text-brand-800 hover:underline"
                                       >
                                         {getDistanceFromLatLonInKm(
                                           USER_LAT,
@@ -1207,7 +1308,7 @@ export default function HomepageBusiness() {
                                         km
                                       </a>
                                     ) : (
-                                      <span className="font-medium text-blue-800">
+                                      <span className="font-medium text-brand-800">
                                         {getDistanceFromLatLonInKm(
                                           USER_LAT,
                                           USER_LNG,

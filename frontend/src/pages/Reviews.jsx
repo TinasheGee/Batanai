@@ -5,7 +5,7 @@ export default function Reviews() {
   return (
     <BusinessLayout title="Business Reviews">
       <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/60 min-h-[600px]">
-        <h2 className="text-2xl font-bold text-[#0047AB] mb-4">Reviews</h2>
+        <h2 className="text-2xl font-bold text-brand-600 mb-4">Reviews</h2>
         <p className="text-gray-600 mb-6">
           See what our customers are saying about us.
         </p>

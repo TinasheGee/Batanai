@@ -15,6 +15,7 @@ const productRoutes = require('./routes/product.routes');
 const mallsRoutes = require('./routes/malls.routes');
 const networkRoutes = require('./routes/network.routes');
 const messageRoutes = require('./routes/messages.routes');
+const notificationsRoutes = require('./routes/notifications.routes');
 
 console.log('✅ reviewsRoutes imported');
 console.log('✅ adminRoutes loaded:', adminRoutes);
@@ -26,7 +27,7 @@ const server = http.createServer(app); // Create HTTP server
 const io = new Server(server, {
   cors: {
     origin: '*', // Allow all origins for dev
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   },
 });
 
@@ -34,6 +35,8 @@ const io = new Server(server, {
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'https://batanai.precknash.co.zw',
   'http://localhost:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
 ];
 
 const corsOptions = {
@@ -46,6 +49,8 @@ const corsOptions = {
     return callback(new Error('CORS policy: Origin not allowed'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  // include PATCH for admin verify and other patch endpoints
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 };
@@ -114,6 +119,7 @@ app.use('/api/reviews', reviewsRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/network', networkRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 app.use('/uploads', express.static('uploads'));
 

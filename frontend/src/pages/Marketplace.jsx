@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import api from '../api/axios';
 import Header from '../components/Header';
 import { useToast } from '../components/ToastContext';
@@ -118,6 +118,14 @@ export default function Marketplace() {
   const [selectedMall, setSelectedMall] = useState('');
   const [connectedIds, setConnectedIds] = useState([]);
   const { addToast } = useToast();
+  const [categoriesHierarchy, setCategoriesHierarchy] = useState([]);
+  const [flatCategories, setFlatCategories] = useState(['All']);
+
+  // Derived categories variable used in UI mappings. Prefer hierarchical when available.
+  const categories =
+    categoriesHierarchy && categoriesHierarchy.length > 0
+      ? categoriesHierarchy
+      : flatCategories;
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -230,6 +238,27 @@ export default function Marketplace() {
     })();
   }, []);
 
+  // Load hierarchical categories for filters
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await api.get('/business/categories');
+        if (res.data && Array.isArray(res.data.categories)) {
+          setCategoriesHierarchy(res.data.categories);
+          const flat = ['All'];
+          res.data.categories.forEach((c) => {
+            if (c && c.name) flat.push(c.name);
+            if (Array.isArray(c.subcategories)) flat.push(...c.subcategories);
+          });
+          setFlatCategories(flat);
+        }
+      } catch (e) {
+        console.warn('Failed to load categories', e?.message || e);
+      }
+    };
+    loadCategories();
+  }, []);
+
   // Re-fetch followed companies when route changes to /marketplace
   useEffect(() => {
     if (location?.pathname === '/marketplace') {
@@ -306,6 +335,21 @@ export default function Marketplace() {
             price: product.price,
             image_url: product.image_url,
             business_id: product.business_id || product.businessId,
+            // include rating fields if available
+            rating: product.rating || null,
+            average_rating:
+              product.average_rating || product.avg_rating || null,
+            // include distance if we have userLocation and product coords
+            distance:
+              userLocation && product.latitude && product.longitude
+                ? getDistanceFromLatLonInKm(
+                    userLocation.lat,
+                    userLocation.lng,
+                    parseFloat(product.latitude),
+                    parseFloat(product.longitude)
+                  )
+                : undefined,
+            distance_unit: userLocation ? 'km' : undefined,
           },
         },
       },
@@ -417,11 +461,23 @@ export default function Marketplace() {
   };
 
   // Calculate paginated products
-  // First, derive unique categories from all products
-  const categories = [
+  // First, derive unique categories from all products (fallback)
+  const productDerivedCategories = [
     'All',
     ...Array.from(new Set(products.map((p) => p.category).filter(Boolean))),
   ];
+
+  // Use global flatCategories when available, otherwise fallback to product-derived
+  const availableCategories =
+    flatCategories && flatCategories.length > 0
+      ? flatCategories
+      : productDerivedCategories;
+
+  // Categories to use in UI: prefer hierarchical, then flat, then product-derived
+  const categoriesForUI =
+    categoriesHierarchy && categoriesHierarchy.length > 0
+      ? categoriesHierarchy
+      : availableCategories;
 
   // Filter products by selected category
   let filteredProducts =
@@ -534,7 +590,7 @@ export default function Marketplace() {
             onClick={() => handlePageChange(number)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               currentPage === number
-                ? 'bg-blue-600 text-white'
+                ? 'bg-brand-600 text-white'
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -596,13 +652,24 @@ export default function Marketplace() {
                 {p.price ? `$${Number(p.price).toLocaleString()}` : ''}
               </div>
               <div className="flex justify-between items-start text-sm text-gray-500 mb-4">
-                <span className="truncate flex-1 mr-2">{p.business_name}</span>
+                <span className="truncate flex-1 mr-2">
+                  {p.business_id || p.businessId ? (
+                    <Link
+                      to={`/business/${p.business_id || p.businessId}`}
+                      className="text-gray-700 hover:text-brand-600 hover:underline"
+                    >
+                      {p.business_name}
+                    </Link>
+                  ) : (
+                    p.business_name
+                  )}
+                </span>
                 {p.distance ? (
                   <a
                     href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 font-semibold whitespace-nowrap hover:text-blue-800 hover:underline cursor-pointer"
+                    className="text-brand-600 font-semibold whitespace-nowrap hover:text-brand-800 hover:underline cursor-pointer"
                     title="Get directions on Google Maps"
                   >
                     {parseFloat(p.distance).toFixed(1)} km
@@ -612,7 +679,7 @@ export default function Marketplace() {
                     href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 font-semibold whitespace-nowrap hover:text-blue-800 hover:underline cursor-pointer"
+                    className="text-brand-600 font-semibold whitespace-nowrap hover:text-brand-800 hover:underline cursor-pointer"
                     title="Get directions on Google Maps"
                   >
                     {getDistanceFromLatLonInKm(
@@ -633,7 +700,7 @@ export default function Marketplace() {
               <div className="mt-auto w-full flex gap-3">
                 <button
                   onClick={() => handleMessageBusiness(p)}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  className="flex-1 bg-brand-600 text-white py-2 rounded-lg font-medium hover:bg-brand-500 transition-colors"
                 >
                   Message
                 </button>
@@ -647,7 +714,7 @@ export default function Marketplace() {
                 ) : (
                   <button
                     onClick={() => handleConnect(p)}
-                    className="flex-1 py-2 rounded-lg font-medium transition-colors bg-white border border-blue-600 text-blue-600 hover:bg-blue-50"
+                    className="flex-1 py-2 rounded-lg font-medium transition-colors bg-white border border-brand-600 text-brand-600 hover:bg-brand-200"
                   >
                     Connect
                   </button>
@@ -669,7 +736,7 @@ export default function Marketplace() {
                 </button>
                 <button
                   onClick={() => handleOpenBusinessReviewModal(p)}
-                  className="flex-1 py-2 rounded-lg font-medium transition-colors bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 flex items-center justify-center gap-1 text-sm"
+                  className="flex-1 py-2 rounded-lg font-medium transition-colors bg-brand-200 border border-brand-200 text-brand-600 hover:bg-brand-200 flex items-center justify-center gap-1 text-sm"
                 >
                   <svg
                     className="w-4 h-4"
@@ -742,7 +809,7 @@ export default function Marketplace() {
                       href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-500 font-bold hover:text-blue-700 hover:underline cursor-pointer"
+                      className="text-xs text-brand-500 font-bold hover:text-brand-600 hover:underline cursor-pointer"
                       title="Get directions on Google Maps"
                     >
                       {parseFloat(p.distance).toFixed(1)} km
@@ -752,7 +819,7 @@ export default function Marketplace() {
                       href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-500 font-bold hover:text-blue-700 hover:underline cursor-pointer"
+                      className="text-xs text-brand-600 font-bold hover:text-brand-800 hover:underline cursor-pointer"
                       title="Get directions on Google Maps"
                     >
                       {getDistanceFromLatLonInKm(
@@ -769,7 +836,18 @@ export default function Marketplace() {
               <p className="text-gray-600 text-sm mt-1 line-clamp-2">
                 {p.description}
               </p>
-              <p className="text-gray-500 text-xs mt-2">{p.business_name}</p>
+              <p className="text-gray-500 text-xs mt-2">
+                {p.business_id || p.businessId ? (
+                  <Link
+                    to={`/business/${p.business_id || p.businessId}`}
+                    className="text-gray-600 hover:text-brand-600 hover:underline"
+                  >
+                    {p.business_name}
+                  </Link>
+                ) : (
+                  p.business_name
+                )}
+              </p>
               {p.mall_name && (
                 <p className="text-gray-400 text-xs mt-1">{p.mall_name}</p>
               )}
@@ -777,7 +855,7 @@ export default function Marketplace() {
               <div className="mt-auto pt-2 flex justify-end gap-2">
                 <button
                   onClick={() => handleMessageBusiness(p)}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-brand-600 text-white text-sm rounded-lg font-medium hover:bg-brand-500 transition-colors"
                 >
                   Message
                 </button>
@@ -791,7 +869,7 @@ export default function Marketplace() {
                 ) : (
                   <button
                     onClick={() => handleConnect(p)}
-                    className="px-4 py-2 text-sm rounded-lg font-medium transition-colors bg-white border border-blue-600 text-blue-600 hover:bg-blue-50"
+                    className="px-4 py-2 text-sm rounded-lg font-medium transition-colors bg-white border border-brand-600 text-brand-600 hover:bg-brand-200"
                   >
                     Connect
                   </button>
@@ -811,7 +889,7 @@ export default function Marketplace() {
                 </button>
                 <button
                   onClick={() => handleOpenBusinessReviewModal(p)}
-                  className="px-3 py-2 text-sm rounded-lg font-medium transition-colors bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 flex items-center gap-1"
+                  className="px-3 py-2 text-sm rounded-lg font-medium transition-colors bg-brand-200 border border-brand-200 text-brand-600 hover:bg-brand-200 flex items-center gap-1"
                 >
                   <svg
                     className="w-3 h-3"
@@ -858,12 +936,13 @@ export default function Marketplace() {
   );
 
   const renderMap = () => {
-    const mapProducts =
-      sortBy === 'closest' && userLocation
-        ? products.filter(
-            (p) => p.distance && parseFloat(p.distance) <= searchRange
-          )
-        : products;
+    const isClosest =
+      (sortBy === 'closest' || sortBy === 'distance-asc') && userLocation;
+    const mapProducts = isClosest
+      ? products.filter(
+          (p) => p.distance && parseFloat(p.distance) <= searchRange
+        )
+      : products;
 
     // Use user location as center if available, otherwise use default Zimbabwe center
     const mapCenter = userLocation
@@ -904,6 +983,61 @@ export default function Marketplace() {
                     position={[parseFloat(p.latitude), parseFloat(p.longitude)]}
                     icon={redIcon}
                   >
+                    <Tooltip
+                      direction="top"
+                      offset={[0, -22]}
+                      className="!bg-white text-sm rounded shadow-lg p-2"
+                    >
+                      <div className="text-center w-36">
+                        {p.image_url && (
+                          <img
+                            src={p.image_url}
+                            alt={p.name}
+                            className="w-12 h-12 rounded object-cover mx-auto mb-1"
+                          />
+                        )}
+                        <div className="font-bold text-sm text-gray-900 truncate">
+                          {p.name}
+                        </div>
+                        <div className="text-green-700 font-bold text-sm">
+                          {p.price
+                            ? `$${Number(p.price).toLocaleString()}`
+                            : ''}
+                        </div>
+                        {(p.distance ||
+                          (userLocation && p.latitude && p.longitude)) && (
+                          <div className="text-brand-600 text-xs font-semibold mt-1">
+                            {p.distance
+                              ? `${parseFloat(p.distance).toFixed(1)} km away`
+                              : `${getDistanceFromLatLonInKm(
+                                  userLocation.lat,
+                                  userLocation.lng,
+                                  p.latitude,
+                                  p.longitude
+                                )} km away`}
+                          </div>
+                        )}
+                        {p.business_name && (
+                          <div className="text-xs text-gray-600 mt-1 truncate">
+                            {p.business_id || p.businessId ? (
+                              <Link
+                                to={`/business/${p.business_id || p.businessId}`}
+                                className="text-gray-700 hover:text-brand-600 hover:underline"
+                              >
+                                {p.business_name}
+                              </Link>
+                            ) : (
+                              p.business_name
+                            )}
+                          </div>
+                        )}
+                        {p.mall_name && (
+                          <div className="text-xs text-gray-500 truncate">
+                            {p.mall_name}
+                          </div>
+                        )}
+                      </div>
+                    </Tooltip>
                     <Popup>
                       <div className="text-center p-1">
                         <img
@@ -924,7 +1058,7 @@ export default function Marketplace() {
                             href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-blue-600 font-semibold mb-1 hover:text-blue-800 hover:underline cursor-pointer block"
+                            className="text-xs text-brand-600 font-semibold mb-1 hover:text-brand-800 hover:underline cursor-pointer block"
                             title="Get directions on Google Maps"
                           >
                             {parseFloat(p.distance).toFixed(1)} km away
@@ -934,7 +1068,7 @@ export default function Marketplace() {
                             href={`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-blue-600 font-semibold mb-1 hover:text-blue-800 hover:underline cursor-pointer block"
+                            className="text-xs text-brand-600 font-semibold mb-1 hover:text-brand-800 hover:underline cursor-pointer block"
                             title="Get directions on Google Maps"
                           >
                             {getDistanceFromLatLonInKm(
@@ -946,18 +1080,27 @@ export default function Marketplace() {
                             km away
                           </a>
                         ) : null}
-                        <p className="text-xs text-gray-500 mb-2">
-                          {p.business_name}
+                        <p className="text-xs text-gray-500 mb-1">
+                          {p.business_id || p.businessId ? (
+                            <Link
+                              to={`/business/${p.business_id || p.businessId}`}
+                              className="text-gray-700 hover:text-brand-600 hover:underline"
+                            >
+                              {p.business_name}
+                            </Link>
+                          ) : (
+                            p.business_name
+                          )}
                         </p>
                         {p.mall_name && (
-                          <p className="text-xs text-gray-500 mb-2">
+                          <p className="text-xs text-gray-500 mb-1">
                             {p.mall_name}
                           </p>
                         )}
-                        <div className="flex flex-col gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <button
                             onClick={() => handleMessageBusiness(p)}
-                            className="w-full bg-blue-500 text-white text-xs py-1 rounded"
+                            className="flex-1 bg-brand-500 text-white text-xs py-1 px-2 rounded"
                           >
                             Message
                           </button>
@@ -966,21 +1109,21 @@ export default function Marketplace() {
                           ) ? (
                             <button
                               onClick={() => handleUnfollow(p)}
-                              className="w-full text-xs py-1 rounded bg-white border border-red-500 text-red-600 hover:bg-red-50"
+                              className="flex-1 text-xs py-1 px-2 rounded bg-white border border-red-500 text-red-600 hover:bg-red-50"
                             >
                               Unfollow
                             </button>
                           ) : (
                             <button
                               onClick={() => handleConnect(p)}
-                              className="w-full text-xs py-1 rounded bg-white border border-blue-500 text-blue-600 hover:bg-blue-50"
+                              className="flex-1 text-xs py-1 px-2 rounded bg-white border border-brand-500 text-brand-600 hover:bg-brand-200"
                             >
                               Connect
                             </button>
                           )}
                           <button
                             onClick={() => handleOpenReviewModal(p)}
-                            className="w-full text-xs py-1 rounded bg-amber-50 border border-amber-400 text-amber-700 hover:bg-amber-100 flex items-center justify-center gap-1"
+                            className="flex-1 text-xs py-1 px-2 rounded bg-amber-50 border border-amber-400 text-amber-700 hover:bg-amber-100 flex items-center justify-center gap-1"
                           >
                             <svg
                               className="w-3 h-3"
@@ -993,7 +1136,7 @@ export default function Marketplace() {
                           </button>
                           <button
                             onClick={() => handleOpenBusinessReviewModal(p)}
-                            className="w-full text-xs py-1 rounded bg-blue-50 border border-blue-400 text-blue-700 hover:bg-blue-100 flex items-center justify-center gap-1"
+                            className="flex-1 text-xs py-1 px-2 rounded bg-brand-200 border border-brand-200 text-brand-600 hover:bg-brand-200 flex items-center justify-center gap-1"
                           >
                             <svg
                               className="w-3 h-3"
@@ -1006,7 +1149,7 @@ export default function Marketplace() {
                           </button>
                           <button
                             onClick={() => handleOpenViewReviews(p, 'product')}
-                            className="w-full text-xs py-1 rounded bg-green-50 border border-green-400 text-green-700 hover:bg-green-100"
+                            className="flex-1 text-xs py-1 px-2 rounded bg-green-50 border border-green-400 text-green-700 hover:bg-green-100"
                           >
                             Reviews{' '}
                             {p.review_count > 0 && `(${p.review_count})`}
@@ -1020,7 +1163,7 @@ export default function Marketplace() {
         </MapContainer>
         {/* Info overlay when no search */}
         {!search?.trim() && (
-          <div className="absolute top-5 left-1/2 -translate-x-1/2 bg-blue-500/90 text-white px-6 py-3 rounded-full text-sm z-[500] shadow-lg">
+          <div className="absolute top-5 left-1/2 -translate-x-1/2 bg-brand-500/90 text-white px-6 py-3 rounded-full text-sm z-[500] shadow-lg">
             🔍 Search for products to see business locations on the map
           </div>
         )}
@@ -1048,7 +1191,7 @@ export default function Marketplace() {
                 placeholder="Search products..."
                 value={search}
                 onChange={handleSearchChange}
-                className="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
               />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -1095,19 +1238,49 @@ export default function Marketplace() {
                   </svg>
                 </button>
                 {openCategoryMenu && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20 max-h-60 overflow-y-auto">
-                    {categories.map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => {
-                          setSelectedCategory(cat);
-                          setOpenCategoryMenu(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 transition ${selectedCategory === cat ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700'}`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20 max-h-40 overflow-y-auto scrollbar-thin">
+                    {categoriesForUI.map((cat) => {
+                      if (cat && typeof cat === 'object') {
+                        return (
+                          <div key={cat.name}>
+                            <button
+                              onClick={() => {
+                                setSelectedCategory(cat.name);
+                                setOpenCategoryMenu(false);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-200 transition ${selectedCategory === cat.name ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                            >
+                              {cat.name}
+                            </button>
+                            {Array.isArray(cat.subcategories) &&
+                              cat.subcategories.map((sub) => (
+                                <button
+                                  key={sub}
+                                  onClick={() => {
+                                    setSelectedCategory(sub);
+                                    setOpenCategoryMenu(false);
+                                  }}
+                                  className={`w-full text-left px-6 py-1 text-xs hover:bg-brand-100 transition ${selectedCategory === sub ? 'bg-brand-100 text-brand-600 font-medium' : 'text-gray-600'}`}
+                                >
+                                  {sub}
+                                </button>
+                              ))}
+                          </div>
+                        );
+                      }
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => {
+                            setSelectedCategory(cat);
+                            setOpenCategoryMenu(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-200 transition ${selectedCategory === cat ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                        >
+                          {cat}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1179,8 +1352,10 @@ export default function Marketplace() {
             {sortBy === 'distance-asc' && (
               <div className="bg-gray-100 rounded-xl px-3 py-2 border border-gray-300">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-blue-900">Range</span>
-                  <span className="text-xs font-bold bg-white px-2 py-0.5 rounded shadow-sm text-blue-800">
+                  <span className="text-xs font-bold text-brand-800">
+                    Range
+                  </span>
+                  <span className="text-xs font-bold bg-white px-2 py-0.5 rounded shadow-sm text-brand-600">
                     {searchRange} km
                   </span>
                 </div>
@@ -1190,7 +1365,7 @@ export default function Marketplace() {
                   max="500"
                   value={searchRange}
                   onChange={(e) => setSearchRange(parseInt(e.target.value))}
-                  className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-brand-600"
                 />
                 <div className="flex justify-between text-[10px] text-gray-500 mt-1">
                   <span>1km</span>
@@ -1207,7 +1382,7 @@ export default function Marketplace() {
                   onClick={() => setView(mode)}
                   className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     view === mode
-                      ? 'bg-blue-600 text-white shadow-md'
+                      ? 'bg-brand-600 text-white shadow-md'
                       : 'text-gray-500 bg-gray-100 hover:bg-gray-200'
                   }`}
                 >
@@ -1226,7 +1401,7 @@ export default function Marketplace() {
             <h3 className="mt-0 mb-4 text-xl text-gray-800 font-bold text-center">
               Navigation
             </h3>
-            <div className="flex flex-col justify-between h-[240px]">
+            <div className="flex flex-col gap-3">
               {/* Search */}
               <div className="relative">
                 <input
@@ -1234,7 +1409,7 @@ export default function Marketplace() {
                   placeholder="Search"
                   value={search}
                   onChange={handleSearchChange}
-                  className="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                 />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -1275,19 +1450,49 @@ export default function Marketplace() {
                   </svg>
                 </button>
                 {openCategoryMenu && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-10">
-                    {categories.map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => {
-                          setSelectedCategory(cat);
-                          setOpenCategoryMenu(false);
-                        }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-blue-50 transition ${selectedCategory === cat ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700'}`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-10 max-h-40 overflow-y-auto scrollbar-thin">
+                    {categoriesForUI.map((cat) => {
+                      if (cat && typeof cat === 'object') {
+                        return (
+                          <div key={cat.name}>
+                            <button
+                              onClick={() => {
+                                setSelectedCategory(cat.name);
+                                setOpenCategoryMenu(false);
+                              }}
+                              className={`w-full text-left px-4 py-2 text-sm hover:bg-brand-200 transition ${selectedCategory === cat.name ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                            >
+                              {cat.name}
+                            </button>
+                            {Array.isArray(cat.subcategories) &&
+                              cat.subcategories.map((sub) => (
+                                <button
+                                  key={sub}
+                                  onClick={() => {
+                                    setSelectedCategory(sub);
+                                    setOpenCategoryMenu(false);
+                                  }}
+                                  className={`w-full text-left px-8 py-1 text-sm hover:bg-brand-100 transition ${selectedCategory === sub ? 'bg-brand-100 text-brand-600 font-medium' : 'text-gray-600'}`}
+                                >
+                                  {sub}
+                                </button>
+                              ))}
+                          </div>
+                        );
+                      }
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => {
+                            setSelectedCategory(cat);
+                            setOpenCategoryMenu(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-brand-200 transition ${selectedCategory === cat ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                        >
+                          {cat}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1333,8 +1538,12 @@ export default function Marketplace() {
                   value={sortBy}
                 >
                   <option value="default">Default</option>
-                  <option value="name-asc">Name (A-Z)</option>
-                  <option value="name-desc">Name (Z-A)</option>
+                  {view !== 'map' && (
+                    <>
+                      <option value="name-asc">Name (A-Z)</option>
+                      <option value="name-desc">Name (Z-A)</option>
+                    </>
+                  )}
                   <option value="price-asc">Price (Low to High)</option>
                   <option value="price-desc">Price (High to Low)</option>
                   <option value="distance-asc">Closest to Me</option>
@@ -1360,10 +1569,10 @@ export default function Marketplace() {
               {sortBy === 'distance-asc' && (
                 <div className="bg-gray-100 rounded-xl px-4 py-3 border border-gray-300">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-bold text-blue-900">
+                    <span className="text-sm font-bold text-brand-800">
                       Range
                     </span>
-                    <span className="text-xs font-bold bg-white px-2 py-0.5 rounded shadow-sm text-blue-800">
+                    <span className="text-xs font-bold bg-white px-2 py-0.5 rounded shadow-sm text-brand-600">
                       {searchRange} km
                     </span>
                   </div>
@@ -1373,7 +1582,7 @@ export default function Marketplace() {
                     max="500"
                     value={searchRange}
                     onChange={(e) => setSearchRange(parseInt(e.target.value))}
-                    className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-brand-600"
                   />
                   <div className="flex justify-between text-[10px] text-gray-500 mt-1">
                     <span>1km</span>
@@ -1387,15 +1596,6 @@ export default function Marketplace() {
 
         {/* MAIN CONTENT */}
         <main className="min-w-0">
-          {/* Product Count Display */}
-          {products.length > 0 && (
-            <div className="mb-4 text-sm text-gray-900 font-semibold px-3 inline-block bg-white/90 rounded-full py-1 shadow-sm">
-              Showing {indexOfFirstProduct + 1}-
-              {Math.min(indexOfLastProduct, products.length)} of{' '}
-              {products.length} products
-            </div>
-          )}
-
           {/* View Toggle - Desktop only */}
           <div className="hidden lg:flex bg-white/40 backdrop-blur-md rounded-2xl p-2 shadow-sm border border-white/50 mb-6 gap-20 w-full justify-center">
             {['grid', 'list', 'map'].map((mode) => (
@@ -1404,7 +1604,7 @@ export default function Marketplace() {
                 onClick={() => setView(mode)}
                 className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
                   view === mode
-                    ? 'bg-blue-600 text-white shadow-md'
+                    ? 'bg-brand-600 text-white shadow-md'
                     : 'text-gray-500 hover:bg-gray-50'
                 }`}
               >
@@ -1414,6 +1614,14 @@ export default function Marketplace() {
           </div>
 
           <div className="bg-white/40 backdrop-blur-md rounded-3xl p-6 shadow-lg border border-white/50 min-h-[500px] overflow-hidden">
+            {/* Product Count Display */}
+            {products.length > 0 && view !== 'map' && (
+              <div className="mb-4 text-sm text-gray-900 font-semibold px-3 inline-block bg-white/90 rounded-full py-1 shadow-sm">
+                Showing {indexOfFirstProduct + 1}-
+                {Math.min(indexOfLastProduct, products.length)} of{' '}
+                {products.length}
+              </div>
+            )}
             {!loading ? (
               <>
                 {view === 'grid' && renderGrid()}
@@ -1430,7 +1638,7 @@ export default function Marketplace() {
               <div className="p-12 text-center text-gray-500">
                 <div className="inline-flex items-center gap-3">
                   <svg
-                    className="animate-spin h-6 w-6 text-blue-600"
+                    className="animate-spin h-6 w-6 text-brand-600"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"

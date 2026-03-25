@@ -1,107 +1,65 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import logo from '../styles/images/logo.png';
-import SiteEditForm from '../components/SiteEditForm';
 import api from '../api/axios';
 
-export default function ContactUs() {
+export default function BusinessPublic() {
+  const { id } = useParams();
   const [business, setBusiness] = useState(null);
-  const [siteInfo, setSiteInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [editingSite, setEditingSite] = useState(false);
-  const [form, setForm] = useState({
-    email: '',
-    phone_number: '',
-    category: '',
-    subcategory: '',
-    employee_count: '',
-    website: '',
-    location: '',
-  });
-  const role = localStorage.getItem('role') || sessionStorage.getItem('role');
-  const provisional = {
-    email: 'contact@batanai.co.zw',
-    phone_number: '+263 77 000 0000',
-    category: 'General Business',
-    employee_count: '10 - 50 Employees',
-    website: 'www.batanai.co.zw',
-    location: '1 Main St, Harare, Zimbabwe',
-    name: 'Batanai',
-    logo_url: '',
-  };
 
   useEffect(() => {
-    const fetchBusinessAndSite = async () => {
+    const fetchBusiness = async () => {
       try {
-        // Try fetch business for logged-in business users
-        try {
-          const res = await api.get('/user/dashboard');
-          if (res.data.businesses && res.data.businesses.length > 0) {
-            setBusiness(res.data.businesses[0]);
-            const b = res.data.businesses[0];
-            setForm({
-              email: b.email || '',
-              phone_number: b.phone_number || '',
-              category: b.category || '',
-              subcategory: b.subcategory || '',
-              employee_count: b.employee_count || '',
-              website: b.website || '',
-              location: b.location || '',
-            });
-          }
-        } catch (e) {
-          // ignore - user may not be a business or not logged in
-        }
-
-        // Fetch public site info (contact details) for customers
-        try {
-          const s = await api.get('/admin/public/site-settings');
-          setSiteInfo(s.data || {});
-        } catch (e) {
-          // ignore if not available
-        }
+        const res = await api.get(`/business/${id}`);
+        setBusiness(res.data || null);
       } catch (err) {
-        console.error('Failed to load contact data', err);
+        console.error('Failed to load business', err);
+        setBusiness(null);
       } finally {
         setLoading(false);
       }
     };
-    fetchBusinessAndSite();
-  }, []);
+    fetchBusiness();
+  }, [id]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-transparent font-sans pb-10">
-        <Header title="Contact Us" />
-        <div className="flex justify-center items-center h-96">
-          <div className="text-xl text-gray-500 font-semibold">
-            Loading contact details...
-          </div>
+        <Header title="Business" />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-xl text-gray-500 font-semibold">Loading...</div>
         </div>
       </div>
     );
   }
 
-  // Use business info when available, otherwise fall back to public siteInfo or provisional content
-  const display = business || siteInfo || provisional;
+  const display = business || {};
+  const logoUrl =
+    display.logo_url ||
+    display.logo ||
+    display.logoUrl ||
+    display.logo_url_full ||
+    display.logo_full ||
+    null;
 
   return (
     <div className="min-h-screen bg-transparent font-sans pb-10">
       <Header
-        title={display.name || 'Contact Us'}
-        logoUrl={display.logo_url || business?.logo_url}
-        forceTitle={!!business}
+        title={display?.name || 'Business'}
+        logoUrl={logoUrl}
+        forceTitle={true}
       />
-      {/* Main Container - Site Owner Layout */}
+
       <div className="max-w-6xl mx-auto px-6 mt-8">
         <div className="bg-white rounded-[40px] shadow-lg p-12 mb-8 flex flex-col items-center justify-center min-h-[260px] relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-brand-200 to-white opacity-60"></div>
           <div className="relative z-10 text-center">
-            {display.logo_url && !display.logo_url.includes('placeholder') ? (
+            {logoUrl && !String(logoUrl).includes('placeholder') ? (
               <img
-                src={display.logo_url}
-                alt={display.name || 'Batanai'}
+                src={logoUrl}
+                alt={display.name}
                 className="max-h-40 mx-auto object-contain drop-shadow-md"
               />
             ) : (
@@ -112,25 +70,8 @@ export default function ContactUs() {
               />
             )}
             <p className="text-gray-600 mt-3 text-lg">
-              Welcome to {display.name || 'Batanai'}. We connect customers with
-              reliable local businesses and surface daily deals across Zimbabwe.
-              For platform enquiries, partnerships, or press, please contact us
-              below.
+              {display.name || 'Business'}. {display.description || ''}
             </p>
-            {(display.category || display.subcategory) && (
-              <div className="text-sm text-gray-500 mt-2">
-                Category:{' '}
-                <span className="font-semibold text-gray-800">
-                  {display.category || ''}
-                </span>
-                {display.subcategory ? (
-                  <span>
-                    {' '}
-                    — <span className="font-medium">{display.subcategory}</span>
-                  </span>
-                ) : null}
-              </div>
-            )}
           </div>
         </div>
 
@@ -254,41 +195,9 @@ export default function ContactUs() {
             >
               View Location
             </button>
-            {role === 'admin' && (
-              <button
-                className="bg-yellow-600 text-white text-lg font-bold py-3 px-6 rounded-full shadow hover:bg-yellow-700 transition"
-                onClick={() => setEditingSite(true)}
-              >
-                Edit Site Info
-              </button>
-            )}
           </div>
         </div>
       </div>
-
-      {/* Edit Site Info Modal (admin only) */}
-      {editingSite && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl shadow-2xl">
-            <h3 className="text-xl font-bold mb-4">Edit Site Contact Info</h3>
-            <SiteEditForm
-              initial={siteInfo}
-              onCancel={() => setEditingSite(false)}
-              onSave={async (updated) => {
-                try {
-                  await api.patch('/admin/site-settings', updated);
-                  const s = await api.get('/admin/public/site-settings');
-                  setSiteInfo(s.data || {});
-                  setEditingSite(false);
-                } catch (err) {
-                  console.error('Failed to save site info', err);
-                  alert('Failed to save site info');
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

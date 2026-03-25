@@ -30,12 +30,18 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Token is invalid/expired
+      // Token is invalid/expired — clear stored auth and emit an event
       localStorage.removeItem('token');
       sessionStorage.removeItem('token');
       localStorage.removeItem('role');
       sessionStorage.removeItem('role');
-      window.location.href = '/login';
+      try {
+        window.dispatchEvent(
+          new CustomEvent('api:unauthorized', { detail: error.response })
+        );
+      } catch (evtErr) {
+        console.warn('Failed to dispatch api:unauthorized event', evtErr);
+      }
     }
     return Promise.reject(error);
   }

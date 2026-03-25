@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import TermsContentBusiness from '../components/TermsContentBusiness';
+import MapPicker from '../components/MapPicker';
 import { useNavigate } from 'react-router-dom';
 import logo from '../styles/images/logo.png';
 import '../styles/login.css';
 import '../styles/register.css';
 import api from '../api/axios'; // Axios helper to include baseURL etc.
+import { toast } from 'react-hot-toast';
 
 export default function RegisterBusiness() {
   const navigate = useNavigate();
@@ -27,10 +31,34 @@ export default function RegisterBusiness() {
   const [malls, setMalls] = useState([]);
   const [selectedMall, setSelectedMall] = useState('');
   const [newMallName, setNewMallName] = useState('');
+  // Categories loaded from backend
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get('/business/categories');
+        if (res.data && Array.isArray(res.data.categories)) {
+          setCategories(res.data.categories);
+        } else {
+          setCategories([]);
+        }
+      } catch (err) {
+        console.warn('Failed to load categories', err?.message || err);
+        setCategories([]);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [navigatePath, setNavigatePath] = useState('');
+  const [showTerms, setShowTerms] = useState(false);
+  const [showLocationOptions, setShowLocationOptions] = useState(false);
+  const [showPickMap, setShowPickMap] = useState(false);
+  const [pickLat, setPickLat] = useState('');
+  const [pickLng, setPickLng] = useState('');
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -108,14 +136,30 @@ export default function RegisterBusiness() {
 
       console.log('✅ Business registered:', res.data);
 
+      // If registration created a new mall, the business may be pending admin approval.
+      if (res.data?.pending_admin_approval) {
+        toast.success(
+          'Registration submitted — pending admin approval for your mall. You will be notified when approved.'
+        );
+        // Show the confirmation page and let the user click the button to go to login.
+        navigate('/business-registered', {
+          state: {
+            business: res.data.business,
+            trial_end_date: res.data.trial_end_date,
+            pending_admin_approval: res.data.pending_admin_approval,
+          },
+        });
+        return;
+      }
+
       // -----------------------------
-      // 3. Navigate to Payment Page
+      // 3. Navigate to Registration Confirmation Page for non-pending cases
       // -----------------------------
-      navigate('/business-payment', {
+      navigate('/business-registered', {
         state: {
-          businessId: res.data.business.id, // ✅ REQUIRED
-          businessName: res.data.business.name,
-          businessEmail: res.data.business.email,
+          business: res.data.business,
+          trial_end_date: res.data.trial_end_date,
+          pending_admin_approval: res.data.pending_admin_approval,
         },
       });
     } catch (err) {
@@ -148,7 +192,7 @@ export default function RegisterBusiness() {
   const cancelLeave = () => setShowModal(false);
 
   return (
-    <div className="login-page">
+    <div className="login-page" style={{ overflowY: 'hidden' }}>
       <div className="login-card">
         <h1 className="login-title">Create your account</h1>
         <h2>
@@ -209,8 +253,25 @@ export default function RegisterBusiness() {
               onChange={handleChange}
             >
               <option value="">-- Select a Business Category --</option>
-              <option value="Grocery">Grocery</option>
-              <option disabled>Hardware & Electricals (Coming Soon)</option>
+              {categories &&
+              categories.length > 0 &&
+              typeof categories[0] === 'object'
+                ? categories.map((cat) => (
+                    <optgroup key={cat.name} label={cat.name}>
+                      <option value={cat.name}>{cat.name}</option>
+                      {Array.isArray(cat.subcategories) &&
+                        cat.subcategories.map((sub) => (
+                          <option key={sub} value={sub}>
+                            {sub}
+                          </option>
+                        ))}
+                    </optgroup>
+                  ))
+                : categories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
             </select>
           </div>
           <div className="select-wrapper">
@@ -293,15 +354,20 @@ export default function RegisterBusiness() {
             onChange={handleChange}
           />
 
-          <label className="checkbox-row">
-            <input
-              type="checkbox"
-              name="allowLocation"
-              checked={formData.allowLocation}
-              onChange={handleChange}
-            />
-            <span>Allow location tracking</span>
-          </label>
+          <div style={{ marginBottom: 12 }}>
+            <button
+              type="button"
+              className="login-submit"
+              onClick={() => setShowLocationOptions(true)}
+            >
+              Set Business Location
+            </button>
+            {formData.address && (
+              <div style={{ marginTop: 8, fontSize: 13 }}>
+                Selected: {formData.address}
+              </div>
+            )}
+          </div>
           <label className="checkbox-row">
             <input
               type="checkbox"
@@ -309,11 +375,20 @@ export default function RegisterBusiness() {
               checked={formData.agree}
               onChange={handleChange}
             />
-            <span>I agree to the terms and conditions</span>
+            <span>
+              I agree to the{' '}
+              <button
+                type="button"
+                onClick={() => setShowTerms(true)}
+                className="text-brand-600 hover:underline bg-transparent border-0 p-0"
+              >
+                terms and conditions
+              </button>
+            </span>
           </label>
 
           <button type="submit" className="login-submit">
-            Proceed to Payment
+            Register
           </button>
         </form>
       </div>
@@ -339,6 +414,251 @@ export default function RegisterBusiness() {
               </button>
               <button style={modalCancelBtn} onClick={cancelLeave}>
                 No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Location Options Modal */}
+      {showLocationOptions && (
+        <div
+          style={backdropStyle}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowLocationOptions(false);
+          }}
+        >
+          <div style={{ ...modalCardStyle, maxWidth: '420px', padding: 18 }}>
+            <h3 style={{ marginTop: 0 }}>Set Business Location</h3>
+            <p style={{ marginTop: 6 }}>
+              Choose how you'd like to set the business location:
+            </p>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                marginTop: 12,
+              }}
+            >
+              <button
+                style={modalConfirmBtn}
+                onClick={() => {
+                  // use browser geolocation
+                  if (!navigator.geolocation) {
+                    alert('Geolocation is not supported by your browser');
+                    return;
+                  }
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                      const { latitude, longitude } = pos.coords;
+                      const coord = `Lat:${latitude.toFixed(6)},Lng:${longitude.toFixed(6)}`;
+                      setFormData((p) => ({ ...p, address: coord }));
+                      setShowLocationOptions(false);
+                    },
+                    (err) => {
+                      alert('Unable to retrieve your location: ' + err.message);
+                    },
+                    { timeout: 10000 }
+                  );
+                }}
+              >
+                Use current location
+              </button>
+
+              <button
+                style={modalCancelBtn}
+                onClick={() => {
+                  setShowPickMap(true);
+                }}
+              >
+                Pick from map
+              </button>
+
+              <button
+                style={{ ...modalCancelBtn, marginTop: 6 }}
+                onClick={() => setShowLocationOptions(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pick-from-map Modal (simple coordinates input fallback) */}
+      {showPickMap && (
+        <div
+          style={backdropStyle}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowPickMap(false);
+          }}
+        >
+          <div
+            style={{
+              ...modalCardStyle,
+              maxWidth: '880px',
+              padding: 12,
+              textAlign: 'left',
+              width: '95%',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h3 style={{ margin: 0 }}>Pick Location</h3>
+              <button
+                onClick={() => setShowPickMap(false)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: 18,
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <MapPicker
+                initialPosition={
+                  formData.address
+                    ? (() => {
+                        const m = formData.address.match(
+                          /Lat:([\d.-]+),Lng:([\d.-]+)/
+                        );
+                        if (m)
+                          return {
+                            lat: parseFloat(m[1]),
+                            lng: parseFloat(m[2]),
+                          };
+                        return { lat: -17.8252, lng: 31.0522 };
+                      })()
+                    : { lat: -17.8252, lng: 31.0522 }
+                }
+                onChange={(latlng) => {
+                  setPickLat(latlng.lat.toFixed(6));
+                  setPickLng(latlng.lng.toFixed(6));
+                }}
+              />
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <input
+                  placeholder="Latitude"
+                  value={pickLat}
+                  onChange={(e) => setPickLat(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <input
+                  placeholder="Longitude"
+                  value={pickLng}
+                  onChange={(e) => setPickLng(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: 8,
+                  marginTop: 12,
+                }}
+              >
+                <button
+                  style={modalConfirmBtn}
+                  onClick={() => {
+                    if (!pickLat || !pickLng) {
+                      alert(
+                        'Please select a location on the map or enter coordinates'
+                      );
+                      return;
+                    }
+                    const coord = `Lat:${parseFloat(pickLat).toFixed(6)},Lng:${parseFloat(pickLng).toFixed(6)}`;
+                    setFormData((p) => ({ ...p, address: coord }));
+                    setShowPickMap(false);
+                    setShowLocationOptions(false);
+                  }}
+                >
+                  Set location
+                </button>
+                <button
+                  style={modalCancelBtn}
+                  onClick={() => setShowPickMap(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Terms Modal */}
+      {showTerms && (
+        <div
+          style={backdropStyle}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowTerms(false);
+          }}
+        >
+          <div
+            style={{
+              ...modalCardStyle,
+              maxWidth: '900px',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              textAlign: 'left',
+              padding: '18px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h3 style={{ margin: 0 }}>Terms and Conditions</h3>
+              <button
+                onClick={() => setShowTerms(false)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: '18px',
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <TermsContentBusiness />
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 8,
+                marginTop: 12,
+              }}
+            >
+              <button
+                onClick={() => {
+                  setFormData((p) => ({ ...p, agree: true }));
+                  setShowTerms(false);
+                }}
+                style={modalConfirmBtn}
+              >
+                I Agree
+              </button>
+              <button
+                onClick={() => setShowTerms(false)}
+                style={modalCancelBtn}
+              >
+                Close
               </button>
             </div>
           </div>

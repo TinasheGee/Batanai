@@ -220,7 +220,7 @@ export default function MyNetwork() {
                   </div>
                   <button
                     onClick={() => handleFollow(biz.id)}
-                    className="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100 transition-colors"
+                    className="px-3 py-1 bg-brand-200 text-brand-600 text-xs font-semibold rounded-lg hover:bg-brand-200 transition-colors"
                   >
                     Follow
                   </button>

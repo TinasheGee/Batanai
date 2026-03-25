@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import Header from '../components/Header';
 import '../styles/login.css'; // Reusing login styles for form consistency
+import '../styles/settings.css';
 import UserProfileDropdown from '../components/UserProfileDropdown';
 
 export default function Profile() {
@@ -21,12 +23,13 @@ export default function Profile() {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const token =
+        localStorage.getItem('token') || sessionStorage.getItem('token');
       if (!token) {
         navigate('/login');
         return;
       }
-      
+
       const response = await api.get('/user/me');
       setUser(response.data);
       setFormData({
@@ -62,56 +65,214 @@ export default function Profile() {
     }
   };
 
-  if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Loading...</div>;
+  if (loading)
+    return (
+      <div style={{ textAlign: 'center', marginTop: '50px' }}>Loading...</div>
+    );
 
   return (
-    <div className="login-page">
-      <div className="login-card" style={{ alignItems: 'normal' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ margin: 0 }}>My Profile</h2>
-             <button onClick={() => navigate(-1)} style={{ padding: '8px 16px', cursor: 'pointer', borderRadius: '8px', border: 'none', background: '#ddd' }}>Back</button>
+    <div className="min-h-screen bg-transparent font-sans pb-10">
+      <Header title="Profile" />
+
+      <div className="settings-page">
+        <div className="settings-wrapper">
+          <aside className="left-panel">
+            <div className="profile-box">
+              <h4>Profile</h4>
+              <ul className="profile-options">
+                <li className="profile-option">
+                  <span className="icon" aria-hidden>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M10 1.5l2.47 5.01 5.53.8-4 3.9.94 5.48L10 14.77 5.06 16.69 6 11.21 2 7.31l5.53-.8L10 1.5z"
+                        fill="#0f172a"
+                      />
+                    </svg>
+                  </span>
+                  <span className="label">Reviews</span>
+                </li>
+                <li className="profile-option">
+                  <span className="icon" aria-hidden>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M3 6h14M3 10h14M3 14h14"
+                        stroke="#0f172a"
+                        strokeWidth="1.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span className="label">Following</span>
+                </li>
+                <li className="profile-option">
+                  <span className="icon" aria-hidden>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M4 7h12v9a1 1 0 01-1 1H5a1 1 0 01-1-1V7z"
+                        stroke="#0f172a"
+                        strokeWidth="1.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M8 7V5a2 2 0 012-2h0a2 2 0 012 2v2"
+                        stroke="#0f172a"
+                        strokeWidth="1.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span className="label">Listed Items</span>
+                </li>
+                <li className="profile-option">
+                  <span className="icon" aria-hidden>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 5.5v9A1.5 1.5 0 003.5 16h13a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0016.5 4h-13A1.5 1.5 0 002 5.5z"
+                        stroke="#0f172a"
+                        strokeWidth="1.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M3.5 6.5l6 4 6-4"
+                        stroke="#0f172a"
+                        strokeWidth="1.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span className="label">Contact</span>
+                </li>
+              </ul>
+            </div>
+          </aside>
+
+          <main className="center-panel">
+            <div className="center-card">
+              <button className="card-back">Back</button>
+              <div className="profile-card-inner">
+                <div className="avatar-large">
+                  <img src={user?.profile_image} alt="Profile" />
+                </div>
+
+                <div className="profile-main">
+                  <div className="profile-header">
+                    <h2 className="profile-name">{user?.full_name}</h2>
+                    <div className="profile-meta">
+                      Member since{' '}
+                      {new Date(user?.created_at || Date.now()).toLocaleString(
+                        'default',
+                        { month: 'long', year: 'numeric' }
+                      )}
+                    </div>
+                    <div className="profile-location">
+                      {user?.location || 'Harare Zimbabwe'}
+                    </div>
+                    <div className="profile-stats">
+                      <div className="stat-line">
+                        <strong>Following:</strong>{' '}
+                        {user?.following_businesses_count ??
+                          user?.following_businesses ??
+                          0}{' '}
+                        Businesses {user?.following_customers_count ?? 0}{' '}
+                        Customers
+                      </div>
+                      <div className="stat-line">
+                        {user?.listed_items_count ?? user?.listed_items ?? 0}{' '}
+                        Listed Items
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="profile-actions">
+                    <button className="action-btn primary">Follow</button>
+                    <button className="action-btn outline">Message</button>
+                  </div>
+
+                  <div className="profile-widgets two-column">
+                    <div className="column">
+                      <div className="profile-widget">
+                        <h5>Following Businesses</h5>
+                        <div className="widget-row">
+                          Sam Levy Boutique • Fresh Market
+                        </div>
+                      </div>
+
+                      <div className="profile-widget">
+                        <h5>Reviews</h5>
+                        <div className="widget-row">
+                          4.8 ★ — Great customer, quick payment
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="column">
+                      <div className="profile-widget">
+                        <h5>Listed Items</h5>
+                        <div className="widget-row">5 Listed Items</div>
+                      </div>
+
+                      <div className="profile-widget">
+                        <h5>Following</h5>
+                        <div className="widget-row">
+                          Sam Levy Boutique • Fresh Market
+                        </div>
+                      </div>
+
+                      <div className="profile-widget">
+                        <h5>Verification</h5>
+                        <div className="widget-row">
+                          <div>✅ Email Verified</div>
+                          <div>✅ Phone Verified</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+
+          <aside className="right-panel">
+            <div className="dashboard-card">
+              <h4>Dashboard (coming soon)</h4>
+              <div className="dash-buttons">
+                <button>Looking For</button>
+                <button>Selling</button>
+                <button>Jobs/Opportunities</button>
+                <button>My Network</button>
+              </div>
+            </div>
+          </aside>
         </div>
-
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <img 
-              src={user?.profile_image} 
-              alt="Profile" 
-              style={{ width: '100px', height: '100px', borderRadius: '50%', marginBottom: '15px' }} 
-          />
-          <h3>{user?.full_name}</h3>
-          <p style={{ color: '#666' }}>{user?.role?.toUpperCase()}</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="login-form">
-          {error && <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
-          {success && <div className="success-message" style={{ color: 'green', marginBottom: '10px' }}>{success}</div>}
-          
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Full Name</label>
-            <input
-              type="text"
-              name="full_name"
-              value={formData.full_name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Email Address</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <button type="submit" className="login-btn" style={{ marginTop: '20px' }}>
-            Save Changes
-          </button>
-        </form>
       </div>
     </div>
   );

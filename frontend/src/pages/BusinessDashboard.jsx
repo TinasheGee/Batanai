@@ -47,30 +47,30 @@ export default function BusinessDashboard() {
             <span className="text-xl"></span> Management
           </h3>
           <div className="flex flex-col gap-2">
-            <button className="flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 rounded-xl font-semibold text-sm">
+            <button className="flex items-center gap-3 px-4 py-3 bg-brand-200 text-brand-600 rounded-xl font-semibold text-sm">
               <span></span> Overview
             </button>
             <button
               onClick={() => navigate('/marketplace')}
-              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium text-sm transition-colors text-left hover:text-blue-600"
+              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium text-sm transition-colors text-left hover:text-brand-600"
             >
               <span></span> My Products
             </button>
             <button
               onClick={() => navigate('/messaging')}
-              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium text-sm transition-colors text-left hover:text-blue-600"
+              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium text-sm transition-colors text-left hover:text-brand-600"
             >
               <span></span> Messages
             </button>
             <button
               onClick={() => navigate('/profile')}
-              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium text-sm transition-colors text-left hover:text-blue-600"
+              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium text-sm transition-colors text-left hover:text-brand-600"
             >
               <span></span> Profile
             </button>
             <button
               onClick={() => navigate('/settings')}
-              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium text-sm transition-colors text-left hover:text-blue-600"
+              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium text-sm transition-colors text-left hover:text-brand-600"
             >
               <span></span> Settings
             </button>
@@ -81,11 +81,13 @@ export default function BusinessDashboard() {
         <main className="flex flex-col gap-8">
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-2xl text-center shadow-sm">
+            <div className="bg-brand-200/50 border border-brand-200 p-6 rounded-2xl text-center shadow-sm">
               <h3 className="text-gray-800 font-bold text-lg mb-1 truncate">
                 {dashboardData?.businesses[0]?.name || 'My Store'}
               </h3>
-              <p className="text-blue-600 text-sm font-medium">Active Branch</p>
+              <p className="text-brand-600 text-sm font-medium">
+                Active Branch
+              </p>
             </div>
             <div className="bg-green-50/50 border border-green-100 p-6 rounded-2xl text-center shadow-sm">
               <h1 className="text-4xl font-extrabold text-green-600 my-2">
@@ -112,7 +114,7 @@ export default function BusinessDashboard() {
             </h3>
             <div className="flex flex-wrap gap-4">
               <button
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all hover:scale-105"
+                className="flex items-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-xl font-semibold shadow-lg hover:bg-brand-500 transition-all hover:scale-105"
                 onClick={() => navigate('/marketplace')}
               >
                 <span>+</span> Add New Product

@@ -90,7 +90,7 @@ router.get('/business/:businessId', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT r.*, u.full_name, COALESCE(r.seconds_count, 0) as seconds_count 
+      `SELECT r.*, u.full_name, COALESCE(r.upvotes_count, 0) as seconds_count, COALESCE(r.upvotes_count, 0) as upvotes_count, COALESCE(r.downvotes_count, 0) as downvotes_count
        FROM reviews r 
        JOIN users u ON r.user_id=u.id 
        WHERE business_id=$1 
@@ -113,7 +113,7 @@ router.get('/product/:productId', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT r.*, u.full_name, COALESCE(r.seconds_count, 0) as seconds_count 
+      `SELECT r.*, u.full_name, COALESCE(r.upvotes_count, 0) as seconds_count, COALESCE(r.upvotes_count, 0) as upvotes_count, COALESCE(r.downvotes_count, 0) as downvotes_count
        FROM reviews r 
        JOIN users u ON r.user_id=u.id 
        WHERE product_id=$1 
@@ -321,38 +321,55 @@ router.post('/:reviewId/second', auth, async (req, res) => {
         .json({ error: 'You cannot second your own review' });
     }
 
-    // Check if already seconded
-    const existingSecond = await pool.query(
-      'SELECT id FROM review_seconds WHERE review_id=$1 AND user_id=$2',
+    // Check if already voted (upvote)
+    const existing = await pool.query(
+      'SELECT id, vote FROM review_votes WHERE review_id=$1 AND user_id=$2',
       [reviewId, req.user.id]
     );
 
-    if (existingSecond.rows.length > 0) {
-      return res
-        .status(400)
-        .json({ error: 'You have already seconded this review' });
+    if (existing.rows.length > 0) {
+      if (existing.rows[0].vote === 1) {
+        return res
+          .status(400)
+          .json({ error: 'You have already upvoted this review' });
+      }
+      // If previously downvoted, update to upvote
+      await pool.query(
+        'UPDATE review_votes SET vote=1, created_at=NOW() WHERE id=$1',
+        [existing.rows[0].id]
+      );
+    } else {
+      // Insert upvote
+      await pool.query(
+        'INSERT INTO review_votes (review_id, user_id, vote) VALUES ($1, $2, 1)',
+        [reviewId, req.user.id]
+      );
     }
 
-    // Insert the second
-    await pool.query(
-      'INSERT INTO review_seconds (review_id, user_id) VALUES ($1, $2)',
-      [reviewId, req.user.id]
+    // Recalculate counts
+    const upResult = await pool.query(
+      'SELECT COUNT(*) as count FROM review_votes WHERE review_id=$1 AND vote=1',
+      [reviewId]
     );
-
-    // Update seconds count
-    const countResult = await pool.query(
-      'SELECT COUNT(*) as count FROM review_seconds WHERE review_id=$1',
+    const downResult = await pool.query(
+      'SELECT COUNT(*) as count FROM review_votes WHERE review_id=$1 AND vote=-1',
       [reviewId]
     );
 
-    const secondsCount = parseInt(countResult.rows[0].count);
+    const upvotes = parseInt(upResult.rows[0].count);
+    const downvotes = parseInt(downResult.rows[0].count);
 
-    await pool.query('UPDATE reviews SET seconds_count=$1 WHERE id=$2', [
-      secondsCount,
-      reviewId,
-    ]);
+    await pool.query(
+      'UPDATE reviews SET upvotes_count=$1, downvotes_count=$2 WHERE id=$3',
+      [upvotes, downvotes, reviewId]
+    );
 
-    res.json({ success: true, seconds_count: secondsCount });
+    res.json({
+      success: true,
+      upvotes_count: upvotes,
+      downvotes_count: downvotes,
+      seconds_count: upvotes,
+    });
   } catch (err) {
     console.error('Second review error:', err.message);
     res.status(500).json({ error: 'Failed to second review' });
@@ -366,30 +383,40 @@ router.delete('/:reviewId/second', auth, async (req, res) => {
   const { reviewId } = req.params;
 
   try {
-    // Delete the second
+    // Delete any vote by user for this review
     const result = await pool.query(
-      'DELETE FROM review_seconds WHERE review_id=$1 AND user_id=$2',
+      'DELETE FROM review_votes WHERE review_id=$1 AND user_id=$2',
       [reviewId, req.user.id]
     );
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Second not found' });
+      return res.status(404).json({ error: 'Vote not found' });
     }
 
-    // Update seconds count
-    const countResult = await pool.query(
-      'SELECT COUNT(*) as count FROM review_seconds WHERE review_id=$1',
+    // Recalculate counts
+    const upResult = await pool.query(
+      'SELECT COUNT(*) as count FROM review_votes WHERE review_id=$1 AND vote=1',
+      [reviewId]
+    );
+    const downResult = await pool.query(
+      'SELECT COUNT(*) as count FROM review_votes WHERE review_id=$1 AND vote=-1',
       [reviewId]
     );
 
-    const secondsCount = parseInt(countResult.rows[0].count);
+    const upvotes = parseInt(upResult.rows[0].count);
+    const downvotes = parseInt(downResult.rows[0].count);
 
-    await pool.query('UPDATE reviews SET seconds_count=$1 WHERE id=$2', [
-      secondsCount,
-      reviewId,
-    ]);
+    await pool.query(
+      'UPDATE reviews SET upvotes_count=$1, downvotes_count=$2 WHERE id=$3',
+      [upvotes, downvotes, reviewId]
+    );
 
-    res.json({ success: true, seconds_count: secondsCount });
+    res.json({
+      success: true,
+      upvotes_count: upvotes,
+      downvotes_count: downvotes,
+      seconds_count: upvotes,
+    });
   } catch (err) {
     console.error('Unsecond review error:', err.message);
     res.status(500).json({ error: 'Failed to unsecond review' });
@@ -404,14 +431,158 @@ router.get('/:reviewId/check-second', auth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT id FROM review_seconds WHERE review_id=$1 AND user_id=$2',
+      'SELECT id, vote FROM review_votes WHERE review_id=$1 AND user_id=$2',
       [reviewId, req.user.id]
     );
 
-    res.json({ hasSeconded: result.rows.length > 0 });
+    const hasUpvoted = result.rows.some((r) => r.vote === 1);
+    res.json({ hasSeconded: hasUpvoted, vote: result.rows[0]?.vote || null });
   } catch (err) {
     console.error('Check second error:', err.message);
     res.status(500).json({ error: 'Failed to check second status' });
+  }
+});
+
+// ------------------------
+// VOTE on a review (1 or -1)
+// ------------------------
+router.post('/:reviewId/vote', auth, async (req, res) => {
+  const { reviewId } = req.params;
+  const { vote } = req.body; // expected 1 or -1
+
+  if (![1, -1].includes(vote)) {
+    return res.status(400).json({ error: 'Invalid vote value' });
+  }
+
+  try {
+    // Check if user is a customer
+    const userCheck = await pool.query('SELECT role FROM users WHERE id=$1', [
+      req.user.id,
+    ]);
+
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (userCheck.rows[0].role !== 'customer') {
+      return res
+        .status(403)
+        .json({ error: 'Only customers can vote on reviews' });
+    }
+
+    // Check if review exists and not user's own
+    const reviewCheck = await pool.query(
+      'SELECT user_id FROM reviews WHERE id=$1',
+      [reviewId]
+    );
+    if (reviewCheck.rows.length === 0)
+      return res.status(404).json({ error: 'Review not found' });
+    if (reviewCheck.rows[0].user_id === req.user.id)
+      return res
+        .status(400)
+        .json({ error: 'You cannot vote on your own review' });
+
+    const existing = await pool.query(
+      'SELECT id, vote FROM review_votes WHERE review_id=$1 AND user_id=$2',
+      [reviewId, req.user.id]
+    );
+
+    if (existing.rows.length > 0) {
+      if (existing.rows[0].vote === vote) {
+        return res
+          .status(400)
+          .json({ error: 'You have already cast this vote' });
+      }
+      // update
+      await pool.query(
+        'UPDATE review_votes SET vote=$1, created_at=NOW() WHERE id=$2',
+        [vote, existing.rows[0].id]
+      );
+    } else {
+      await pool.query(
+        'INSERT INTO review_votes (review_id, user_id, vote) VALUES ($1,$2,$3)',
+        [reviewId, req.user.id, vote]
+      );
+    }
+
+    // Recalculate counts
+    const upResult = await pool.query(
+      'SELECT COUNT(*) as count FROM review_votes WHERE review_id=$1 AND vote=1',
+      [reviewId]
+    );
+    const downResult = await pool.query(
+      'SELECT COUNT(*) as count FROM review_votes WHERE review_id=$1 AND vote=-1',
+      [reviewId]
+    );
+
+    const upvotes = parseInt(upResult.rows[0].count);
+    const downvotes = parseInt(downResult.rows[0].count);
+
+    await pool.query(
+      'UPDATE reviews SET upvotes_count=$1, downvotes_count=$2 WHERE id=$3',
+      [upvotes, downvotes, reviewId]
+    );
+
+    res.json({
+      success: true,
+      upvotes_count: upvotes,
+      downvotes_count: downvotes,
+    });
+  } catch (err) {
+    console.error('Vote error:', err.message);
+    res.status(500).json({ error: 'Failed to cast vote' });
+  }
+});
+
+router.get('/:reviewId/vote', auth, async (req, res) => {
+  const { reviewId } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT vote FROM review_votes WHERE review_id=$1 AND user_id=$2',
+      [reviewId, req.user.id]
+    );
+    res.json({ vote: result.rows[0]?.vote || null });
+  } catch (err) {
+    console.error('Get vote error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch vote' });
+  }
+});
+
+router.delete('/:reviewId/vote', auth, async (req, res) => {
+  const { reviewId } = req.params;
+  try {
+    const result = await pool.query(
+      'DELETE FROM review_votes WHERE review_id=$1 AND user_id=$2',
+      [reviewId, req.user.id]
+    );
+    if (result.rowCount === 0)
+      return res.status(404).json({ error: 'Vote not found' });
+
+    const upResult = await pool.query(
+      'SELECT COUNT(*) as count FROM review_votes WHERE review_id=$1 AND vote=1',
+      [reviewId]
+    );
+    const downResult = await pool.query(
+      'SELECT COUNT(*) as count FROM review_votes WHERE review_id=$1 AND vote=-1',
+      [reviewId]
+    );
+
+    const upvotes = parseInt(upResult.rows[0].count);
+    const downvotes = parseInt(downResult.rows[0].count);
+
+    await pool.query(
+      'UPDATE reviews SET upvotes_count=$1, downvotes_count=$2 WHERE id=$3',
+      [upvotes, downvotes, reviewId]
+    );
+
+    res.json({
+      success: true,
+      upvotes_count: upvotes,
+      downvotes_count: downvotes,
+    });
+  } catch (err) {
+    console.error('Delete vote error:', err.message);
+    res.status(500).json({ error: 'Failed to delete vote' });
   }
 });
 
