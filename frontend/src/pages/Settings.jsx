@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import Header from '../components/Header';
@@ -12,6 +12,12 @@ export default function Settings() {
     newPassword: '',
     confirmPassword: '',
   });
+  const [user, setUser] = useState(null);
+  const [profileData, setProfileData] = useState({
+    privacyName: '',
+    email: '',
+  });
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
@@ -20,6 +26,46 @@ export default function Settings() {
       ...passData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await api.get('/user/me');
+      setUser(res.data);
+      setProfileData({
+        privacyName: res.data.full_name || '',
+        email: res.data.email || '',
+      });
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+    }
+  };
+
+  const handleProfileChange = (e) => {
+    setProfileData({ ...profileData, [e.target.name]: e.target.value });
+  };
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    try {
+      const payload = {
+        full_name: profileData.privacyName,
+        email: profileData.email,
+      };
+      await api.put('/user/profile', payload);
+      setSuccess('Profile updated successfully');
+      // refresh local user
+      fetchProfile();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to update profile');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -176,11 +222,32 @@ export default function Settings() {
                 </div>
                 <div className="right-cell">
                   <div className="profile-content settings-section">
-                    <label>Privacy Name</label>
-                    <input type="text" defaultValue="Brandon Otto" />
+                    <form onSubmit={handleProfileSubmit}>
+                      {error && <div className="form-error">{error}</div>}
+                      {success && <div className="form-success">{success}</div>}
 
-                    <label>Email</label>
-                    <input type="email" defaultValue="brandon@email.com" />
+                      <label>Privacy Name</label>
+                      <input
+                        type="text"
+                        name="privacyName"
+                        value={profileData.privacyName}
+                        onChange={handleProfileChange}
+                      />
+
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={profileData.email}
+                        onChange={handleProfileChange}
+                      />
+
+                      <div className="form-actions" style={{ marginTop: 12 }}>
+                        <button type="submit" className="primary-btn">
+                          Save Profile
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 </div>
 
