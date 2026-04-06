@@ -213,3 +213,22 @@
   height: 40px;
   border-radius: 5px;
 }
+
+/* Helper class to standardize small card buttons inside product cards */
+.card-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  height: 34px;
+  border-radius: 8px;
+}
+
+@media (max-width: 640px) {
+  .card-btn {
+    padding: 5px 8px;
+    font-size: 0.85rem;
+    height: 32px;
+  }
+}

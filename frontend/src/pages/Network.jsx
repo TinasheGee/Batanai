@@ -98,7 +98,7 @@ export default function MyNetwork() {
 
   if (loading)
     return (
-      <div className="h-screen flex items-center justify-center text-gray-400">
+      <div className="h-screen flex items-center justify-center text-black">
         Loading network...
       </div>
     );
@@ -111,16 +111,16 @@ export default function MyNetwork() {
       <div className="max-w-[1600px] mx-auto mt-6 px-4 grid grid-cols-1 lg:grid-cols-[320px_1fr_320px] gap-6 items-start">
         {/* LEFT: Companies + Customers stacked */}
         <aside className="flex flex-col gap-6">
-          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-5 w-[320px]">
-            <h3 className="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">
+          <div className="bg-white/40 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-5 w-[320px]">
+            <h3 className="font-bold text-black text-lg mb-4 flex items-center gap-2">
               <span>Companies</span>
-              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+              <span className="bg-gray-100 text-black px-2 py-0.5 rounded-full text-xs">
                 {following.length}
               </span>
             </h3>
             <div className="flex flex-col gap-1">
               {following.length === 0 && (
-                <p className="text-gray-400 text-sm">
+                <p className="text-black text-sm">
                   You are not following any businesses yet.
                 </p>
               )}
@@ -135,10 +135,10 @@ export default function MyNetwork() {
                     className="w-12 h-12 rounded-full object-cover shadow-sm bg-gray-100"
                   />
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-800 text-sm truncate">
+                    <h4 className="font-bold text-black text-sm truncate">
                       {biz.name}
                     </h4>
-                    <small className="text-gray-500 text-xs truncate block">
+                    <small className="text-black text-xs truncate block">
                       {biz.category}
                     </small>
                   </div>
@@ -153,16 +153,16 @@ export default function MyNetwork() {
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-5 w-[320px]">
-            <h3 className="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">
+          <div className="bg-white/40 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-5 w-[320px]">
+            <h3 className="font-bold text-black text-lg mb-4 flex items-center gap-2">
               <span>Customers</span>
-              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+              <span className="bg-gray-100 text-black px-2 py-0.5 rounded-full text-xs">
                 {followedBy.length}
               </span>
             </h3>
             <div className="flex flex-col gap-1">
               {followedBy.length === 0 && (
-                <p className="text-gray-400 text-sm">No followers yet.</p>
+                <p className="text-black text-sm">No followers yet.</p>
               )}
               {followedBy.map((user) => (
                 <div
@@ -175,10 +175,10 @@ export default function MyNetwork() {
                     className="w-10 h-10 rounded-full object-cover bg-gray-100"
                   />
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-800 text-sm truncate">
+                    <h4 className="font-bold text-black text-sm truncate">
                       {user.full_name}
                     </h4>
-                    <small className="text-gray-500 text-xs block">
+                    <small className="text-black text-xs block">
                       {user.role}
                     </small>
                   </div>
@@ -191,14 +191,12 @@ export default function MyNetwork() {
         {/* CENTER: Suggestions + People (replacing the map) */}
         <main className="flex flex-col gap-6">
           <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
-            <h3 className="font-bold text-gray-800 text-lg mb-4">
+            <h3 className="font-bold text-black text-lg mb-4">
               Suggested for you
             </h3>
             <div className="flex flex-col gap-1">
               {suggestions.length === 0 && (
-                <p className="text-gray-400 text-sm">
-                  No suggestions right now.
-                </p>
+                <p className="text-black text-sm">No suggestions right now.</p>
               )}
               {suggestions.map((biz) => (
                 <div
@@ -211,10 +209,10 @@ export default function MyNetwork() {
                     className="w-12 h-12 rounded-full object-cover shadow-sm bg-gray-100"
                   />
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-800 text-sm truncate">
+                    <h4 className="font-bold text-black text-sm truncate">
                       {biz.name}
                     </h4>
-                    <small className="text-gray-500 text-xs truncate block">
+                    <small className="text-black text-xs truncate block">
                       {biz.category}
                     </small>
                   </div>
@@ -230,12 +228,10 @@ export default function MyNetwork() {
           </div>
 
           <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
-            <h3 className="font-bold text-gray-800 text-lg mb-1">
+            <h3 className="font-bold text-black text-lg mb-1">
               People like you
             </h3>
-            <p className="text-xs text-gray-500 mb-4">
-              Based on your interests
-            </p>
+            <p className="text-xs text-black mb-4">Based on your interests</p>
             <div className="flex flex-col gap-1">
               {people.map((person) => (
                 <div
@@ -248,17 +244,15 @@ export default function MyNetwork() {
                     className="w-10 h-10 rounded-full object-cover bg-gray-100"
                   />
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-800 text-sm truncate">
+                    <h4 className="font-bold text-black text-sm truncate">
                       {person.full_name}
                     </h4>
-                    <small className="text-gray-500 text-xs block">
-                      Customer
-                    </small>
+                    <small className="text-black text-xs block">Customer</small>
                   </div>
                 </div>
               ))}
               {people.length === 0 && (
-                <p className="text-gray-400 text-sm">
+                <p className="text-black text-sm">
                   No recommendations yet. Update your interests!
                 </p>
               )}
@@ -267,9 +261,9 @@ export default function MyNetwork() {
         </main>
 
         {/* RIGHT: Dashboard menu */}
-        <aside className="hidden lg:flex flex-col gap-5 sticky top-32 h-fit">
+        <aside className="hidden lg:flex flex-col gap-5 sticky top-30 h-fit">
           <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
-            <h3 className="mt-0 mb-4 text-lg text-gray-800 font-bold pb-2 text-center">
+            <h3 className="mt-0 mb-4 text-lg text-black font-bold pb-2 text-center">
               Dashboard (coming soon)
             </h3>
 

@@ -302,7 +302,7 @@ export default function HomepageBusiness() {
     });
 
   return (
-    <div className="min-h-screen bg-transparent font-sans pb-10">
+    <div className="min-h-screen bg-transparent font-sans pb-10 route-transition">
       <Header
         title={
           role === 'business' && businessProfile
@@ -559,7 +559,7 @@ export default function HomepageBusiness() {
       )}
 
       <div
-        className={`max-w-[1600px] mx-auto mt-8 grid grid-cols-1 ${role === 'business' ? 'lg:grid-cols-[260px_1fr_280px]' : 'lg:grid-cols-[260px_1fr_280px]'} gap-8 px-6`}
+        className={`max-w-[1600px] mx-auto mt-6 grid grid-cols-1 ${role === 'business' ? 'lg:grid-cols-[280px_1fr_280px]' : 'lg:grid-cols-[280px_1fr_280px]'} gap-8 px-6`}
       >
         {/* LEFT MENU - CUSTOM */}
         {role === 'business' ? (
@@ -666,12 +666,12 @@ export default function HomepageBusiness() {
           </aside>
         ) : (
           // CUSTOMER SIDEBAR (Navigation)
-          <aside className="hidden lg:flex flex-col gap-5 sticky top-32 h-fit">
+          <aside className="hidden lg:flex flex-col gap-5 sticky top-30 h-fit">
             <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
               <h3 className="mt-0 mb-4 text-xl text-gray-800 font-bold text-center">
                 Navigation
               </h3>
-              <div className="flex flex-col justify-between h-[240px]">
+              <div className="flex flex-col justify-between h-[190px]">
                 {/* Search */}
                 <div className="relative">
                   <input
@@ -1350,7 +1350,7 @@ export default function HomepageBusiness() {
         </main>
 
         {/* RIGHT DASHBOARD (Optional Helper) */}
-        <aside className="hidden lg:flex flex-col gap-5 sticky top-32 h-fit">
+        <aside className="hidden lg:flex flex-col gap-5 sticky top-30 h-fit">
           <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
             <h3 className="mt-0 mb-4 text-lg text-gray-800 font-bold pb-2 text-center">
               Dashboard (coming soon)

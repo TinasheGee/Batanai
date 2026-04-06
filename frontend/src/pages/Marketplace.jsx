@@ -565,8 +565,8 @@ export default function Marketplace() {
           disabled={currentPage === 1}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             currentPage === 1
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+              ? 'bg-gray-100 text-black cursor-not-allowed'
+              : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
           }`}
         >
           Previous
@@ -576,11 +576,11 @@ export default function Marketplace() {
           <>
             <button
               onClick={() => handlePageChange(1)}
-              className="px-4 py-2 rounded-lg font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 rounded-lg font-medium bg-white border border-gray-300 text-black hover:bg-gray-50"
             >
               1
             </button>
-            {startPage > 2 && <span className="text-gray-400">...</span>}
+            {startPage > 2 && <span className="text-black">...</span>}
           </>
         )}
 
@@ -591,7 +591,7 @@ export default function Marketplace() {
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               currentPage === number
                 ? 'bg-brand-600 text-white'
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
             }`}
           >
             {number}
@@ -601,11 +601,11 @@ export default function Marketplace() {
         {endPage < totalPages && (
           <>
             {endPage < totalPages - 1 && (
-              <span className="text-gray-400">...</span>
+              <span className="text-black">...</span>
             )}
             <button
               onClick={() => handlePageChange(totalPages)}
-              className="px-4 py-2 rounded-lg font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 rounded-lg font-medium bg-white border border-gray-300 text-black hover:bg-gray-50"
             >
               {totalPages}
             </button>
@@ -617,8 +617,8 @@ export default function Marketplace() {
           disabled={currentPage === totalPages}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             currentPage === totalPages
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+              ? 'bg-gray-100 text-black cursor-not-allowed'
+              : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
           }`}
         >
           Next
@@ -644,19 +644,19 @@ export default function Marketplace() {
               <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold shadow-sm"></div>
             </div>
             <div className="p-4 flex flex-col flex-1">
-              <h4 className="font-bold text-gray-800 text-lg mb-1 truncate">
+              <h4 className="font-bold text-black text-lg mb-1 truncate">
                 {p.name}
               </h4>
               {/* Price display */}
               <div className="text-lg font-bold text-green-700 mb-1">
                 {p.price ? `$${Number(p.price).toLocaleString()}` : ''}
               </div>
-              <div className="flex justify-between items-start text-sm text-gray-500 mb-4">
+              <div className="flex justify-between items-start text-sm text-black mb-4">
                 <span className="truncate flex-1 mr-2">
                   {p.business_id || p.businessId ? (
                     <Link
                       to={`/business/${p.business_id || p.businessId}`}
-                      className="text-gray-700 hover:text-brand-600 hover:underline"
+                      className="text-black hover:text-brand-600 hover:underline"
                     >
                       {p.business_name}
                     </Link>
@@ -695,26 +695,26 @@ export default function Marketplace() {
                 )}
               </div>
               {p.mall_name && (
-                <div className="text-xs text-gray-500 mb-3">{p.mall_name}</div>
+                <div className="text-xs text-black mb-3">{p.mall_name}</div>
               )}
               <div className="mt-auto w-full flex gap-3">
                 <button
                   onClick={() => handleMessageBusiness(p)}
-                  className="flex-1 bg-brand-600 text-white py-2 rounded-lg font-medium hover:bg-brand-500 transition-colors"
+                  className="flex-1 bg-brand-600 text-white py-1 px-3 rounded-md text-sm font-medium hover:bg-brand-500 transition-colors card-btn"
                 >
                   Message
                 </button>
                 {connectedIds.includes(p.business_id || p.businessId) ? (
                   <button
                     onClick={() => handleUnfollow(p)}
-                    className="flex-1 py-2 rounded-lg font-medium bg-white border border-red-600 text-red-600 hover:bg-red-50 transition-colors"
+                    className="flex-1 py-1 px-3 rounded-md text-sm font-medium bg-white border border-red-600 text-red-600 hover:bg-red-50 transition-colors card-btn"
                   >
                     Unfollow
                   </button>
                 ) : (
                   <button
                     onClick={() => handleConnect(p)}
-                    className="flex-1 py-2 rounded-lg font-medium transition-colors bg-white border border-brand-600 text-brand-600 hover:bg-brand-200"
+                    className="flex-1 py-1 px-3 rounded-md text-sm font-medium transition-colors bg-white border border-brand-600 text-brand-600 hover:bg-brand-200 card-btn"
                   >
                     Connect
                   </button>
@@ -723,7 +723,7 @@ export default function Marketplace() {
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={() => handleOpenReviewModal(p)}
-                  className="flex-1 py-2 rounded-lg font-medium transition-colors bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100 flex items-center justify-center gap-1 text-sm"
+                  className="flex-1 py-1 px-2 rounded-md font-medium transition-colors bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100 flex items-center justify-center gap-1 text-sm card-btn"
                 >
                   <svg
                     className="w-4 h-4"
@@ -736,7 +736,7 @@ export default function Marketplace() {
                 </button>
                 <button
                   onClick={() => handleOpenBusinessReviewModal(p)}
-                  className="flex-1 py-2 rounded-lg font-medium transition-colors bg-brand-200 border border-brand-200 text-brand-600 hover:bg-brand-200 flex items-center justify-center gap-1 text-sm"
+                  className="flex-1 py-1 px-2 rounded-md font-medium transition-colors bg-brand-200 border border-brand-200 text-brand-600 hover:bg-brand-200 flex items-center justify-center gap-1 text-sm card-btn"
                 >
                   <svg
                     className="w-4 h-4"
@@ -750,7 +750,7 @@ export default function Marketplace() {
               </div>
               <button
                 onClick={() => handleOpenViewReviews(p, 'product')}
-                className="w-full mt-2 py-2 rounded-lg font-medium transition-colors bg-green-50 border border-green-300 text-green-700 hover:bg-green-100 flex items-center justify-center gap-2 text-sm"
+                className="w-full mt-2 py-1 rounded-md font-medium transition-colors bg-green-50 border border-green-300 text-green-700 hover:bg-green-100 flex items-center justify-center gap-2 text-sm card-btn"
               >
                 <svg
                   className="w-4 h-4"
@@ -796,7 +796,7 @@ export default function Marketplace() {
             <div className="flex-1 flex flex-col">
               <div className="flex justify-between items-center">
                 <div>
-                  <h4 className="font-bold text-gray-800 text-xl mb-0">
+                  <h4 className="font-bold text-black text-xl mb-0">
                     {p.name}
                   </h4>
                   <div className="text-lg font-bold text-green-700">
@@ -833,14 +833,14 @@ export default function Marketplace() {
                   ) : null}
                 </div>
               </div>
-              <p className="text-gray-600 text-sm mt-1 line-clamp-2">
+              <p className="text-black text-sm mt-1 line-clamp-2">
                 {p.description}
               </p>
-              <p className="text-gray-500 text-xs mt-2">
+              <p className="text-black text-xs mt-2">
                 {p.business_id || p.businessId ? (
                   <Link
                     to={`/business/${p.business_id || p.businessId}`}
-                    className="text-gray-600 hover:text-brand-600 hover:underline"
+                    className="text-black hover:text-brand-600 hover:underline"
                   >
                     {p.business_name}
                   </Link>
@@ -849,7 +849,7 @@ export default function Marketplace() {
                 )}
               </p>
               {p.mall_name && (
-                <p className="text-gray-400 text-xs mt-1">{p.mall_name}</p>
+                <p className="text-black text-xs mt-1">{p.mall_name}</p>
               )}
 
               <div className="mt-auto pt-2 flex justify-end gap-2">
@@ -996,7 +996,7 @@ export default function Marketplace() {
                             className="w-12 h-12 rounded object-cover mx-auto mb-1"
                           />
                         )}
-                        <div className="font-bold text-sm text-gray-900 truncate">
+                        <div className="font-bold text-sm text-black truncate">
                           {p.name}
                         </div>
                         <div className="text-green-700 font-bold text-sm">
@@ -1018,11 +1018,11 @@ export default function Marketplace() {
                           </div>
                         )}
                         {p.business_name && (
-                          <div className="text-xs text-gray-600 mt-1 truncate">
+                          <div className="text-xs text-black mt-1 truncate">
                             {p.business_id || p.businessId ? (
                               <Link
                                 to={`/business/${p.business_id || p.businessId}`}
-                                className="text-gray-700 hover:text-brand-600 hover:underline"
+                                className="text-black hover:text-brand-600 hover:underline"
                               >
                                 {p.business_name}
                               </Link>
@@ -1032,7 +1032,7 @@ export default function Marketplace() {
                           </div>
                         )}
                         {p.mall_name && (
-                          <div className="text-xs text-gray-500 truncate">
+                          <div className="text-xs text-black truncate">
                             {p.mall_name}
                           </div>
                         )}
@@ -1080,11 +1080,11 @@ export default function Marketplace() {
                             km away
                           </a>
                         ) : null}
-                        <p className="text-xs text-gray-500 mb-1">
+                        <p className="text-xs text-black mb-1">
                           {p.business_id || p.businessId ? (
                             <Link
                               to={`/business/${p.business_id || p.businessId}`}
-                              className="text-gray-700 hover:text-brand-600 hover:underline"
+                              className="text-black hover:text-brand-600 hover:underline"
                             >
                               {p.business_name}
                             </Link>
@@ -1093,14 +1093,14 @@ export default function Marketplace() {
                           )}
                         </p>
                         {p.mall_name && (
-                          <p className="text-xs text-gray-500 mb-1">
+                          <p className="text-xs text-black mb-1">
                             {p.mall_name}
                           </p>
                         )}
                         <div className="flex gap-2 flex-wrap">
                           <button
                             onClick={() => handleMessageBusiness(p)}
-                            className="flex-1 bg-brand-500 text-white text-xs py-1 px-2 rounded"
+                            className="flex-1 bg-brand-500 text-white text-sm py-1 px-2 rounded-md card-btn"
                           >
                             Message
                           </button>
@@ -1109,21 +1109,21 @@ export default function Marketplace() {
                           ) ? (
                             <button
                               onClick={() => handleUnfollow(p)}
-                              className="flex-1 text-xs py-1 px-2 rounded bg-white border border-red-500 text-red-600 hover:bg-red-50"
+                              className="flex-1 text-sm py-1 px-2 rounded-md bg-white border border-red-500 text-red-600 hover:bg-red-50 card-btn"
                             >
                               Unfollow
                             </button>
                           ) : (
                             <button
                               onClick={() => handleConnect(p)}
-                              className="flex-1 text-xs py-1 px-2 rounded bg-white border border-brand-500 text-brand-600 hover:bg-brand-200"
+                              className="flex-1 text-sm py-1 px-2 rounded-md bg-white border border-brand-500 text-brand-600 hover:bg-brand-200 card-btn"
                             >
                               Connect
                             </button>
                           )}
                           <button
                             onClick={() => handleOpenReviewModal(p)}
-                            className="flex-1 text-xs py-1 px-2 rounded bg-amber-50 border border-amber-400 text-amber-700 hover:bg-amber-100 flex items-center justify-center gap-1"
+                            className="flex-1 text-sm py-1 px-2 rounded-md bg-amber-50 border border-amber-400 text-amber-700 hover:bg-amber-100 flex items-center justify-center gap-1 card-btn"
                           >
                             <svg
                               className="w-3 h-3"
@@ -1177,7 +1177,7 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent font-sans pb-10">
+    <div className="min-h-screen bg-transparent font-sans pb-10 route-transition">
       <Header title="Marketplace" />
 
       {/* MOBILE FILTERS - Visible only on mobile */}
@@ -1195,7 +1195,7 @@ export default function Marketplace() {
               />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 absolute right-3 top-2 text-gray-500"
+                className="h-5 w-5 absolute right-3 top-2 text-black"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -1215,7 +1215,7 @@ export default function Marketplace() {
               <div className="relative">
                 <button
                   onClick={() => setOpenCategoryMenu(!openCategoryMenu)}
-                  className="flex items-center justify-between w-full px-3 py-2 rounded-full bg-gray-100 border border-gray-300 hover:bg-gray-200 text-gray-800 font-semibold transition text-xs"
+                  className="flex items-center justify-between w-full px-3 py-2 rounded-full bg-gray-100 border border-gray-300 hover:bg-gray-200 text-black font-semibold transition text-xs"
                 >
                   <span className="truncate">
                     {selectedCategory === 'All'
@@ -1248,7 +1248,7 @@ export default function Marketplace() {
                                 setSelectedCategory(cat.name);
                                 setOpenCategoryMenu(false);
                               }}
-                              className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-200 transition ${selectedCategory === cat.name ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                              className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-200 transition ${selectedCategory === cat.name ? 'bg-brand-200 text-brand-600 font-bold' : 'text-black'}`}
                             >
                               {cat.name}
                             </button>
@@ -1260,7 +1260,7 @@ export default function Marketplace() {
                                     setSelectedCategory(sub);
                                     setOpenCategoryMenu(false);
                                   }}
-                                  className={`w-full text-left px-6 py-1 text-xs hover:bg-brand-100 transition ${selectedCategory === sub ? 'bg-brand-100 text-brand-600 font-medium' : 'text-gray-600'}`}
+                                  className={`w-full text-left px-6 py-1 text-xs hover:bg-brand-100 transition ${selectedCategory === sub ? 'bg-brand-100 text-brand-600 font-medium' : 'text-black'}`}
                                 >
                                   {sub}
                                 </button>
@@ -1275,7 +1275,7 @@ export default function Marketplace() {
                             setSelectedCategory(cat);
                             setOpenCategoryMenu(false);
                           }}
-                          className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-200 transition ${selectedCategory === cat ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                          className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-200 transition ${selectedCategory === cat ? 'bg-brand-200 text-brand-600 font-bold' : 'text-black'}`}
                         >
                           {cat}
                         </button>
@@ -1299,7 +1299,7 @@ export default function Marketplace() {
                   <option value="price-desc">Price High-Low</option>
                   <option value="distance-asc">Closest</option>
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-black">
                   <svg
                     className="w-3 h-3"
                     fill="none"
@@ -1331,7 +1331,7 @@ export default function Marketplace() {
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-black">
                 <svg
                   className="w-3 h-3"
                   fill="none"
@@ -1367,7 +1367,7 @@ export default function Marketplace() {
                   onChange={(e) => setSearchRange(parseInt(e.target.value))}
                   className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-brand-600"
                 />
-                <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                <div className="flex justify-between text-[10px] text-black mt-1">
                   <span>1km</span>
                   <span>500km</span>
                 </div>
@@ -1383,7 +1383,7 @@ export default function Marketplace() {
                   className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     view === mode
                       ? 'bg-brand-600 text-white shadow-md'
-                      : 'text-gray-500 bg-gray-100 hover:bg-gray-200'
+                      : 'text-black bg-gray-100 hover:bg-gray-200'
                   }`}
                 >
                   {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -1394,11 +1394,11 @@ export default function Marketplace() {
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto mt-6 px-4 grid grid-cols-1 lg:grid-cols-[300px_1fr_260px] gap-6 items-start">
+      <div className="max-w-[1600px] mx-auto mt-6 px-4 grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] gap-6 items-start">
         {/* LEFT SIDEBAR - NAVIGATION */}
         <aside className="hidden lg:flex flex-col gap-5 sticky top-28 h-fit">
           <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
-            <h3 className="mt-0 mb-4 text-xl text-gray-800 font-bold text-center">
+            <h3 className="mt-0 mb-4 text-xl text-black font-bold text-center">
               Navigation
             </h3>
             <div className="flex flex-col gap-3">
@@ -1413,7 +1413,7 @@ export default function Marketplace() {
                 />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 absolute right-3 top-2 text-gray-500"
+                  className="h-5 w-5 absolute right-3 top-2 text-black"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -1431,7 +1431,7 @@ export default function Marketplace() {
               <div className="relative">
                 <button
                   onClick={() => setOpenCategoryMenu(!openCategoryMenu)}
-                  className="flex items-center justify-between w-full px-4 py-2 rounded-full bg-gray-100 border border-gray-300 hover:bg-gray-200 text-gray-800 font-semibold transition text-sm"
+                  className="flex items-center justify-between w-full px-4 py-2 rounded-full bg-gray-100 border border-gray-300 hover:bg-gray-200 text-black font-semibold transition text-sm"
                 >
                   {selectedCategory === 'All' ? 'Categories' : selectedCategory}
                   <svg
@@ -1460,7 +1460,7 @@ export default function Marketplace() {
                                 setSelectedCategory(cat.name);
                                 setOpenCategoryMenu(false);
                               }}
-                              className={`w-full text-left px-4 py-2 text-sm hover:bg-brand-200 transition ${selectedCategory === cat.name ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                              className={`w-full text-left px-4 py-2 text-sm hover:bg-brand-200 transition ${selectedCategory === cat.name ? 'bg-brand-200 text-brand-600 font-bold' : 'text-black'}`}
                             >
                               {cat.name}
                             </button>
@@ -1472,7 +1472,7 @@ export default function Marketplace() {
                                     setSelectedCategory(sub);
                                     setOpenCategoryMenu(false);
                                   }}
-                                  className={`w-full text-left px-8 py-1 text-sm hover:bg-brand-100 transition ${selectedCategory === sub ? 'bg-brand-100 text-brand-600 font-medium' : 'text-gray-600'}`}
+                                  className={`w-full text-left px-8 py-1 text-sm hover:bg-brand-100 transition ${selectedCategory === sub ? 'bg-brand-100 text-brand-600 font-medium' : 'text-black'}`}
                                 >
                                   {sub}
                                 </button>
@@ -1487,7 +1487,7 @@ export default function Marketplace() {
                             setSelectedCategory(cat);
                             setOpenCategoryMenu(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm hover:bg-brand-200 transition ${selectedCategory === cat ? 'bg-brand-200 text-brand-600 font-bold' : 'text-gray-700'}`}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-brand-200 transition ${selectedCategory === cat ? 'bg-brand-200 text-brand-600 font-bold' : 'text-black'}`}
                         >
                           {cat}
                         </button>
@@ -1512,7 +1512,7 @@ export default function Marketplace() {
                       </option>
                     ))}
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-black">
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -1548,7 +1548,7 @@ export default function Marketplace() {
                   <option value="price-desc">Price (High to Low)</option>
                   <option value="distance-asc">Closest to Me</option>
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-black">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -1584,7 +1584,7 @@ export default function Marketplace() {
                     onChange={(e) => setSearchRange(parseInt(e.target.value))}
                     className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-brand-600"
                   />
-                  <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                  <div className="flex justify-between text-[10px] text-black mt-1">
                     <span>1km</span>
                     <span>500km</span>
                   </div>
@@ -1605,7 +1605,7 @@ export default function Marketplace() {
                 className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
                   view === mode
                     ? 'bg-brand-600 text-white shadow-md'
-                    : 'text-gray-500 hover:bg-gray-50'
+                    : 'text-black hover:bg-gray-50'
                 }`}
               >
                 {mode.charAt(0).toUpperCase() + mode.slice(1)} View
@@ -1616,7 +1616,7 @@ export default function Marketplace() {
           <div className="bg-white/40 backdrop-blur-md rounded-3xl p-6 shadow-lg border border-white/50 min-h-[500px] overflow-hidden">
             {/* Product Count Display */}
             {products.length > 0 && view !== 'map' && (
-              <div className="mb-4 text-sm text-gray-900 font-semibold px-3 inline-block bg-white/90 rounded-full py-1 shadow-sm">
+              <div className="mb-4 text-sm text-black font-semibold px-3 inline-block bg-white/90 rounded-full py-1 shadow-sm">
                 Showing {indexOfFirstProduct + 1}-
                 {Math.min(indexOfLastProduct, products.length)} of{' '}
                 {products.length}
@@ -1628,14 +1628,14 @@ export default function Marketplace() {
                 {view === 'list' && renderList()}
                 {view === 'map' && renderMap()}
                 {products.length === 0 && (
-                  <div className="flex flex-col items-center justify-center p-12 text-center text-gray-400">
+                  <div className="flex flex-col items-center justify-center p-12 text-center text-black">
                     <div className="text-4xl mb-4"></div>
                     <p>No products found matching your criteria.</p>
                   </div>
                 )}
               </>
             ) : (
-              <div className="p-12 text-center text-gray-500">
+              <div className="p-12 text-center text-black">
                 <div className="inline-flex items-center gap-3">
                   <svg
                     className="animate-spin h-6 w-6 text-brand-600"
@@ -1657,7 +1657,7 @@ export default function Marketplace() {
                       d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                     ></path>
                   </svg>
-                  <span className="text-gray-600">Loading marketplace...</span>
+                  <span className="text-black">Loading marketplace...</span>
                 </div>
               </div>
             )}
@@ -1667,23 +1667,23 @@ export default function Marketplace() {
         {/* RIGHT DASHBOARD (Helper) */}
         <aside className="hidden lg:flex flex-col gap-5 sticky top-28 h-fit">
           <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
-            <h3 className="mt-0 mb-4 text-lg text-gray-800 font-bold pb-2 text-center">
+            <h3 className="mt-0 mb-4 text-lg text-black font-bold pb-2 text-center">
               Dashboard (coming soon)
             </h3>
 
             <div className="flex flex-col gap-3">
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-black font-bold shadow-md transition-all text-center">
                 Looking For
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-black font-bold shadow-md transition-all text-center">
                 Selling
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-black font-bold shadow-md transition-all text-center">
                 Jobs/Opportunities
               </button>
               <button
                 onClick={() => navigate('/network')}
-                className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center"
+                className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-black font-bold shadow-md transition-all text-center"
               >
                 My Network
               </button>

@@ -5,6 +5,10 @@ const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
+const upload = require('../upload');
+const fs = require('fs');
+const path = require('path');
+const uploadDir = path.join(__dirname, '..', 'uploads');
 
 // GET USER PROFILE (ME)
 router.get('/me', auth, async (req, res) => {
@@ -13,9 +17,9 @@ router.get('/me', auth, async (req, res) => {
     const role = (req.user.role || '').toLowerCase();
 
     if (role === 'business') {
-      // Fetch business profile
+      // Fetch business profile by owner_id (user id)
       const bRes = await pool.query(
-        `SELECT id, name, email, phone, category, description, is_active, is_verified, created_at FROM businesses WHERE id=$1`,
+        `SELECT id, name, email, phone, category, description, is_active, is_verified, created_at FROM businesses WHERE owner_id=$1`,
         [userId]
       );
       if (bRes.rows.length === 0)
@@ -34,13 +38,39 @@ router.get('/me', auth, async (req, res) => {
         is_verified: biz.is_verified,
         created_at: biz.created_at,
       };
-      userObj.profile_image = `https://ui-avatars.com/api/?name=${encodeURIComponent(userObj.full_name)}&background=random&color=fff&rounded=true`;
+      // attach per-user preference if present
+      try {
+        const prefRes = await pool.query(
+          'SELECT skip_unit_warning FROM users WHERE id=$1',
+          [req.user.id]
+        );
+        userObj.skip_unit_warning = !!(
+          prefRes.rows[0] && prefRes.rows[0].skip_unit_warning
+        );
+      } catch (e) {
+        userObj.skip_unit_warning = false;
+      }
+      // prefer any uploaded profile image for this user
+      try {
+        const files = fs.existsSync(uploadDir) ? fs.readdirSync(uploadDir) : [];
+        const found = files.find((f) => f.startsWith(`user-${userId}`));
+        if (found)
+          userObj.profile_image = `${req.protocol}://${req.get('host')}/uploads/${found}`;
+        else
+          userObj.profile_image = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            userObj.full_name
+          )}&background=random&color=fff&rounded=true`;
+      } catch (e) {
+        userObj.profile_image = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          userObj.full_name
+        )}&background=random&color=fff&rounded=true`;
+      }
       return res.json(userObj);
     }
 
     // Default: regular users
     const userResult = await pool.query(
-      `SELECT users.id, users.full_name, users.email, users.role, businesses.name as business_name 
+      `SELECT users.id, users.full_name, users.email, users.role, users.skip_unit_warning, businesses.name as business_name 
        FROM users 
        LEFT JOIN businesses ON users.id = businesses.owner_id 
        WHERE users.id=$1`,
@@ -52,13 +82,47 @@ router.get('/me', auth, async (req, res) => {
     }
 
     const user = userResult.rows[0];
-    // Generate avatar based on name
-    user.profile_image = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=random&color=fff&rounded=true`;
+    // Prefer an uploaded profile image if present, otherwise generate avatar based on name
+    try {
+      const files = fs.existsSync(uploadDir) ? fs.readdirSync(uploadDir) : [];
+      const found = files.find((f) => f.startsWith(`user-${userId}`));
+      if (found)
+        user.profile_image = `${req.protocol}://${req.get('host')}/uploads/${found}`;
+      else
+        user.profile_image = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          user.full_name
+        )}&background=random&color=fff&rounded=true`;
+    } catch (e) {
+      user.profile_image = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        user.full_name
+      )}&background=random&color=fff&rounded=true`;
+    }
 
     res.json(user);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update user preferences (e.g., skip unit warning)
+router.put('/preferences', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { skipUnitWarning } = req.body;
+    if (typeof skipUnitWarning === 'undefined') {
+      return res
+        .status(400)
+        .json({ error: 'Missing skipUnitWarning in request body' });
+    }
+    await pool.query('UPDATE users SET skip_unit_warning=$1 WHERE id=$2', [
+      !!skipUnitWarning,
+      userId,
+    ]);
+    res.json({ skip_unit_warning: !!skipUnitWarning });
+  } catch (err) {
+    console.error('Failed to update preferences', err.message);
+    res.status(500).json({ error: 'Failed to update preferences' });
   }
 });
 
@@ -170,4 +234,68 @@ router.get('/dashboard', auth, async (req, res) => {
   }
 });
 
+// Upload profile image for current user
+router.post(
+  '/profile/image',
+  auth,
+  upload.single('image'),
+  async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+      const userId = req.user.id;
+      const ext =
+        path.extname(req.file.originalname) || path.extname(req.file.filename);
+      const newName = `user-${userId}${ext}`;
+      const oldPath = path.join(uploadDir, req.file.filename);
+      const newPath = path.join(uploadDir, newName);
+
+      // remove any previous user images
+      try {
+        const files = fs.existsSync(uploadDir) ? fs.readdirSync(uploadDir) : [];
+        files.forEach((f) => {
+          if (f.startsWith(`user-${userId}`) && f !== newName) {
+            try {
+              fs.unlinkSync(path.join(uploadDir, f));
+            } catch (e) {}
+          }
+        });
+      } catch (e) {
+        // ignore
+      }
+
+      // rename the uploaded file to a stable name
+      fs.renameSync(oldPath, newPath);
+
+      const imagePath = `${req.protocol}://${req.get('host')}/uploads/${newName}`;
+      // we don't add a DB column; GET /me will prefer the uploaded file when present
+      res.json({ profile_image: imagePath });
+    } catch (err) {
+      console.error('upload profile image error', err.message);
+      res.status(500).json({ error: 'Failed to upload profile image' });
+    }
+  }
+);
+
 module.exports = router;
+
+// DELETE profile image for current user
+router.delete('/profile/image', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const files = fs.existsSync(uploadDir) ? fs.readdirSync(uploadDir) : [];
+    const userFiles = files.filter((f) => f.startsWith(`user-${userId}`));
+    let deleted = 0;
+    for (const f of userFiles) {
+      try {
+        fs.unlinkSync(path.join(uploadDir, f));
+        deleted += 1;
+      } catch (e) {
+        // ignore individual errors
+      }
+    }
+    res.json({ deleted });
+  } catch (err) {
+    console.error('delete profile image error', err.message);
+    res.status(500).json({ error: 'Failed to delete profile image' });
+  }
+});

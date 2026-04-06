@@ -18,6 +18,8 @@ export default function Catalogue() {
   const [editingProduct, setEditingProduct] = useState(null);
   // Delete Modal State
   const [productToDelete, setProductToDelete] = useState(null);
+  const [showUnitWarning, setShowUnitWarning] = useState(false);
+  const [dontAskUnitAgain, setDontAskUnitAgain] = useState(false);
 
   const [form, setForm] = useState({
     name: '',
@@ -66,6 +68,21 @@ export default function Catalogue() {
       }
     };
     fetchBusiness();
+  }, []);
+
+  // load user preference for skipUnitWarning from server
+  useEffect(() => {
+    const loadPref = async () => {
+      try {
+        const res = await api.get('/user/me');
+        if (res.data && typeof res.data.skip_unit_warning !== 'undefined') {
+          setDontAskUnitAgain(!!res.data.skip_unit_warning);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadPref();
   }, []);
 
   // 2. Fetch Products & Categories when filters change
@@ -567,8 +584,12 @@ export default function Catalogue() {
                       return;
                     }
                     if (!form.unit?.trim()) {
-                      alert('Please enter a unit (e.g., kg, unit, piece)');
-                      return;
+                      if (dontAskUnitAgain) {
+                        // proceed
+                      } else {
+                        setShowUnitWarning(true);
+                        return;
+                      }
                     }
                     if (!form.category) {
                       alert('Please select a category');
@@ -640,6 +661,136 @@ export default function Catalogue() {
                   className="px-4 py-2 rounded bg-brand-600 text-white font-bold"
                 >
                   Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Unit confirmation modal */}
+        {showUnitWarning && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+              <h3 className="text-lg font-bold mb-3">No unit provided</h3>
+              <p className="text-gray-700 mb-4">
+                Are you sure you want to save without adding a unit? (e.g., kg,
+                unit, piece)
+              </p>
+              <label className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  checked={dontAskUnitAgain}
+                  onChange={(e) => setDontAskUnitAgain(e.target.checked)}
+                />
+                <span className="text-sm text-gray-600">
+                  Don't show this again
+                </span>
+              </label>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowUnitWarning(false)}
+                  className="px-4 py-2 rounded bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      // Persist preference server-side for this user
+                      try {
+                        await api.put('/user/preferences', {
+                          skipUnitWarning: !!dontAskUnitAgain,
+                        });
+                      } catch (e) {
+                        console.warn(
+                          'Failed to persist preference',
+                          e?.message || e
+                        );
+                      }
+                      setShowUnitWarning(false);
+                      // proceed to save: reuse the same click handler by invoking the Save logic
+                      // We'll simulate click by calling the Save code path directly here.
+                      // Validation repeat (without unit check)
+                      if (!form.name?.trim()) {
+                        alert('Please enter a product name');
+                        return;
+                      }
+                      if (!form.description?.trim()) {
+                        alert('Please enter a product description');
+                        return;
+                      }
+                      if (!form.price || parseFloat(form.price) <= 0) {
+                        alert('Please enter a valid price');
+                        return;
+                      }
+                      if (!form.category) {
+                        alert('Please select a category');
+                        return;
+                      }
+                      if (!editingProduct && !form.imageFile) {
+                        alert('Please upload a product image');
+                        return;
+                      }
+
+                      try {
+                        if (editingProduct) {
+                          if (form.imageFile) {
+                            const payload = new FormData();
+                            payload.append('name', form.name);
+                            payload.append('description', form.description);
+                            payload.append('price', form.price);
+                            payload.append('unit', form.unit);
+                            if (form.category)
+                              payload.append('category', form.category);
+                            payload.append('image', form.imageFile);
+                            await api.put(
+                              `/business/products/${editingProduct.id}`,
+                              payload
+                            );
+                          } else {
+                            const payload = { ...form };
+                            delete payload.imageFile;
+                            await api.put(
+                              `/business/products/${editingProduct.id}`,
+                              payload
+                            );
+                          }
+                        } else {
+                          const payload = new FormData();
+                          payload.append('name', form.name);
+                          payload.append('description', form.description);
+                          payload.append('price', form.price);
+                          payload.append('unit', form.unit);
+                          if (form.category)
+                            payload.append('category', form.category);
+                          if (form.imageFile)
+                            payload.append('image', form.imageFile);
+                          await api.post(
+                            `/business/${businessId}/products`,
+                            payload
+                          );
+                        }
+                        setShowModal(false);
+                        setForm((f) => ({ ...f, imageFile: null }));
+                        fetchProducts();
+                        toast.success(
+                          editingProduct ? 'Product updated!' : 'Product added!'
+                        );
+                      } catch (err) {
+                        console.error('Failed to save product', err);
+                        const msg =
+                          err?.response?.data?.error ||
+                          err.message ||
+                          'Failed to save product';
+                        toast.error(`Error: ${msg}`);
+                      }
+                    } catch (err) {
+                      console.error(err);
+                    }
+                  }}
+                  className="px-4 py-2 rounded bg-brand-600 text-white font-bold"
+                >
+                  Save without unit
                 </button>
               </div>
             </div>

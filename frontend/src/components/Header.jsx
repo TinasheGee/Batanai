@@ -223,9 +223,14 @@ export default function Header({ title, logoUrl, forceTitle = false }) {
           </svg>
         </button>
 
-        {/* Right: Profile - Desktop */}
-        <div className="hidden lg:block flex-shrink-0 pr-2">
-          <UserProfileDropdown user={user} />
+        {/* Right: Profile - keep visible on all sizes for consistent top-right avatar */}
+        <div
+          className="flex-shrink-0 pr-2"
+          style={{ minWidth: 180, display: 'flex', justifyContent: 'flex-end' }}
+        >
+          <UserProfileDropdown
+            user={user || { full_name: 'User', role: '', profile_image: '' }}
+          />
         </div>
       </div>
 

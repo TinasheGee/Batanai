@@ -6,6 +6,7 @@ import Header from '../components/Header';
 export default function BusinessDashboard() {
   const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,6 +17,13 @@ export default function BusinessDashboard() {
     try {
       const res = await api.get('/user/dashboard');
       setDashboardData(res.data);
+      // also fetch current user profile to show avatar
+      try {
+        const me = await api.get('/user/me');
+        setUser(me.data);
+      } catch (e) {
+        // ignore user fetch errors
+      }
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -142,6 +150,17 @@ export default function BusinessDashboard() {
         {/* RIGHT DASHBOARD (Helper) */}
         <aside className="hidden lg:flex flex-col gap-5 sticky top-32 h-fit">
           <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
+            <div className="mini-avatar" style={{ marginLeft: 'auto' }}>
+              <img
+                src={
+                  user?.profile_image ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    (user && (user.full_name || user.name)) || 'User'
+                  )}&background=random&color=fff&rounded=true`
+                }
+                alt="Profile"
+              />
+            </div>
             <h3 className="mt-0 mb-4 text-lg text-gray-800 font-bold pb-2 text-center">
               Dashboard (coming soon)
             </h3>

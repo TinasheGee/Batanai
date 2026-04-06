@@ -23,6 +23,25 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Smooth scroll for in-page/anchor navigation to remove jump effect */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Simple mount transition used by top-level pages to fade/slide in */
+.route-transition {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: routeFadeIn 260ms ease forwards;
+}
+
+@keyframes routeFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;

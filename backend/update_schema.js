@@ -77,6 +77,11 @@ const pool = require('./.db_temp_migration.js');
       'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS downvotes_count INTEGER DEFAULT 0'
     );
 
+    // add user preference: skip_unit_warning
+    await pool.query(
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS skip_unit_warning BOOLEAN DEFAULT FALSE'
+    );
+
     // Create review_votes table to persist upvotes/downvotes
     await pool.query(`
       CREATE TABLE IF NOT EXISTS review_votes (

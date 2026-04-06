@@ -206,7 +206,7 @@ export default function Messaging() {
 
   if (loading)
     return (
-      <div className="h-screen flex items-center justify-center text-gray-400">
+      <div className="h-screen flex items-center justify-center text-black">
         Loading messages...
       </div>
     );
@@ -217,13 +217,13 @@ export default function Messaging() {
 
       <div className="flex-1 max-w-[1600px] w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-[320px_1fr_280px] gap-6 overflow-hidden">
         {/* CONVERSATION LIST */}
-        <div className="w-80 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-visible shrink-0 self-start">
+        <div className="w-80 bg-white/40 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-visible shrink-0 self-start">
           <div className="p-4 border-b border-gray-100">
-            <h3 className="font-bold text-lg text-gray-800">Messages</h3>
+            <h3 className="font-bold text-lg text-black">Messages</h3>
           </div>
           <div className="h-auto custom-scrollbar">
             {conversations.length === 0 && (
-              <p className="p-6 text-center text-gray-400 text-sm">
+              <p className="p-6 text-center text-black text-sm">
                 No recent conversations.
               </p>
             )}
@@ -239,8 +239,8 @@ export default function Messaging() {
                     activeChat?.partner_id === conv.partner_id
                       ? 'bg-brand-200 border-brand-500'
                       : isUnread
-                        ? 'bg-white border-brand-200'
-                        : 'bg-white border-transparent hover:bg-gray-50'
+                        ? ' border-brand-200'
+                        : ' border-transparent hover:bg-gray-50'
                   }`}
                 >
                   <img
@@ -250,12 +250,12 @@ export default function Messaging() {
                   />
                   <div className="flex-1 min-w-0">
                     <h4
-                      className={`text-sm truncate ${isUnread ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}
+                      className={`text-sm truncate ${isUnread ? 'font-bold text-black' : 'font-medium text-black'}`}
                     >
                       {conv.partner_name}
                     </h4>
                     <p
-                      className={`text-xs truncate ${isUnread ? 'font-semibold text-gray-800' : 'text-gray-500'}`}
+                      className={`text-xs truncate ${isUnread ? 'font-semibold text-black' : 'text-black'}`}
                     >
                       {currentUser?.id === conv.last_message_sender_id &&
                         'You: '}
@@ -279,7 +279,7 @@ export default function Messaging() {
                   alt={activeChat.partner_name}
                   className="w-10 h-10 rounded-full object-cover shadow-sm"
                 />
-                <h3 className="font-bold text-gray-800 lg:text-lg">
+                <h3 className="font-bold text-black lg:text-lg">
                   {activeChat.partner_name}
                 </h3>
               </div>
@@ -297,7 +297,7 @@ export default function Messaging() {
                         className={`px-4 py-2.5 rounded-2xl shadow-sm text-sm ${
                           isMe
                             ? 'bg-brand-600 text-white rounded-br-sm'
-                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
+                            : 'bg-white text-black border border-gray-100 rounded-bl-sm'
                         }`}
                       >
                         {/* Render product attachment inside the message bubble when present */}
@@ -333,7 +333,7 @@ export default function Messaging() {
                                     undefined && (
                                     <div className="text-sm text-yellow-500 font-medium flex items-center gap-1">
                                       <span>★</span>
-                                      <span className="text-gray-700">
+                                      <span className="text-black">
                                         {typeof (
                                           msg.attachment.snapshot?.rating ??
                                           msg.attachment.snapshot
@@ -354,7 +354,7 @@ export default function Messaging() {
                                   {/* Distance */}
                                   {msg.attachment.snapshot?.distance !==
                                     undefined && (
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-black">
                                       {msg.attachment.snapshot.distance}
                                       {msg.attachment.snapshot.distance_unit
                                         ? ` ${msg.attachment.snapshot.distance_unit}`
@@ -363,14 +363,12 @@ export default function Messaging() {
                                   )}
                                 </div>
                               </div>
-                              <div className="text-xs text-gray-500">
-                                Product
-                              </div>
+                              <div className="text-xs text-black">Product</div>
                             </div>
                           )}
                         {msg.content}
                       </div>
-                      <span className="text-[10px] text-gray-400 mt-1 px-1">
+                      <span className="text-[10px] text-black mt-1 px-1">
                         {new Date(msg.created_at).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -395,7 +393,7 @@ export default function Messaging() {
                       className="w-12 h-12 object-cover rounded-md"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-gray-800 truncate">
+                      <div className="font-semibold text-black truncate">
                         {attachment.name}
                       </div>
                       {attachment.price != null && (
@@ -407,7 +405,7 @@ export default function Messaging() {
                     <button
                       type="button"
                       onClick={() => setAttachment(null)}
-                      className="text-gray-500 hover:text-gray-700 ml-2"
+                      className="text-black hover:text-black ml-2"
                       aria-label="Remove attachment"
                     >
                       ✕
@@ -419,7 +417,7 @@ export default function Messaging() {
                   placeholder="Type a message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1 bg-gray-100 border-0 text-gray-800 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200 placeholder-gray-400 transition-all"
+                  className="flex-1 bg-gray-100 border-0 text-black rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200 placeholder-gray-400 transition-all"
                 />
                 <button
                   type="submit"
@@ -431,9 +429,9 @@ export default function Messaging() {
               </form>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-300">
+            <div className="flex-1 flex flex-col items-center justify-center text-black">
               <div className="text-6xl mb-4 opacity-50"></div>
-              <p className="text-lg font-medium">
+              <p className="text-lg font-medium text-black">
                 Select a conversation to start messaging
               </p>
             </div>
@@ -443,23 +441,23 @@ export default function Messaging() {
         {/* RIGHT DASHBOARD (Helper) */}
         <aside className="hidden lg:flex flex-col gap-5 self-start sticky h-fit">
           <div className="bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50 w-full">
-            <h3 className="mt-0 mb-4 text-lg text-gray-800 font-bold pb-2 text-center">
+            <h3 className="mt-0 mb-4 text-lg text-black font-bold pb-2 text-center">
               Dashboard (coming soon)
             </h3>
 
             <div className="flex flex-col gap-3">
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-black font-bold shadow-md transition-all text-center">
                 Looking For
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-black font-bold shadow-md transition-all text-center">
                 Selling
               </button>
-              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-gray-900 font-bold shadow-md transition-all text-center">
+              <button className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 hover:cursor-not-allowed text-black font-bold shadow-md transition-all text-center">
                 Jobs/Opportunities
               </button>
               <button
                 onClick={() => navigate('/network')}
-                className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-gray-900 font-bold shadow-md transition-all text-center"
+                className="w-full py-2.5 px-4 rounded-full bg-gray-400 hover:bg-gray-500 text-black font-bold shadow-md transition-all text-center"
               >
                 My Network
               </button>

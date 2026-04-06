@@ -113,26 +113,24 @@
   font-size: 18px;
 }
 
-.avatar-block {
+.avatar-actions {
+  margin-top: 12px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 8px;
+  justify-content: center;
+  align-items: baseline;
 }
 
-.right-column {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.sr-only {
-  position: absolute !important;
-  height: 1px;
-  width: 1px;
-  overflow: hidden;
-  clip: rect(1px, 1px, 1px, 1px);
-  white-space: nowrap;
+.change-photo {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e6eef7;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.06);
+  min-width: 84px;
+  text-align: center;
 }
 .three-col .section-headings {
   display: flex;
@@ -200,6 +198,14 @@
   box-shadow: 0 6px 18px rgba(2, 6, 23, 0.12);
 }
 
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
 .change-photo {
   background: #fff;
   border: 1px solid #e4e7eb;
@@ -207,6 +213,24 @@
   border-radius: 8px;
   margin-bottom: 12px;
   cursor: pointer;
+}
+
+.save-photo-btn,
+.remove-photo-btn {
+  background: #fff;
+  border: 1px solid #e4e7eb;
+  padding: 6px 8px;
+  border-radius: 8px;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  min-width: 76px;
+}
+
+.remove-photo-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 0, 0, 0.12);
+  color: #c53030;
 }
 
 .profile-info label {
@@ -317,14 +341,65 @@
 }
 
 .center-card .card-back {
+  /* keep this selector present for backward compatibility but hide
+     the right-positioned variant so the header-specific rule wins
+     (the visible back button is controlled by .center-header .card-back) */
+  display: none;
+}
+
+/* Settings header: left back button, centered title and subtitle */
+.center-header {
+  position: relative;
+  text-align: center;
+  padding: 12px 0 6px 0;
+}
+.center-header .card-back {
   position: absolute;
-  right: 16px;
-  top: 12px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.06);
   padding: 6px 10px;
   border-radius: 10px;
-  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 48px;
+  z-index: 5;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
+}
+
+/* Show a compact back button for pages that place it directly inside .center-card
+   (e.g., the Profile page uses a direct child .card-back). This overrides the
+   earlier rule that hid right-positioned variants. */
+.center-card > .card-back {
+  display: inline-flex;
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  transform: none;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  padding: 6px 10px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  z-index: 5;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
+}
+.center-header-titles h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.center-subtitle {
+  margin: 6px 0 0 0;
+  color: #475569;
+  font-size: 13px;
 }
 
 .avatar-large {
@@ -335,6 +410,7 @@
   box-shadow: 0 8px 26px rgba(2, 6, 23, 0.12);
   border: 6px solid rgba(255, 255, 255, 0.9);
   flex-shrink: 0;
+  position: relative;
 }
 
 .avatar-large img {
@@ -366,12 +442,25 @@
   gap: 12px;
 }
 
+.profile-actions-fullwidth {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+}
+.profile-actions-fullwidth .action-btn {
+  flex: 1 1 0;
+  max-width: none;
+}
+
 .action-btn {
-  padding: 10px 22px;
+  padding: 7px 22px;
   border-radius: 999px;
   font-weight: 700;
   cursor: pointer;
   border: none;
+  width: 100%;
 }
 
 .action-btn.primary {
@@ -481,6 +570,27 @@
   text-align: center;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+}
+
+/* Small avatar shown in the top-right of dashboard cards */
+.dashboard-card .mini-avatar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.12);
+  border: 4px solid rgba(255, 255, 255, 0.85);
+  background: #fff;
+}
+.dashboard-card .mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .dashboard-card h4,
@@ -518,9 +628,17 @@
 }
 
 .dash-buttons button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 36px rgba(6, 22, 45, 0.12);
-  background: rgba(120, 128, 140, 0.46);
+  /* remove jump/translate on hover for dashboard buttons */
+  transform: none;
+  box-shadow: 0 8px 20px rgba(6, 22, 45, 0.06);
+  background: rgba(120, 128, 140, 0.36);
+}
+
+/* Disabled-looking buttons: show not-allowed cursor but keep styling */
+.dash-buttons button:disabled,
+.dash-buttons .disabled-btn {
+  cursor: not-allowed;
+  opacity: 0.95;
 }
 
 @media (max-width: 1100px) {

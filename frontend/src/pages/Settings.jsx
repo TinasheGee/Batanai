@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import Header from '../components/Header';
@@ -20,6 +20,9 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const fileInputRef = useRef(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const handleChange = (e) => {
     setPassData({
@@ -68,6 +71,66 @@ export default function Settings() {
     }
   };
 
+  const triggerFileSelect = () =>
+    fileInputRef.current && fileInputRef.current.click();
+
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const handleSavePhoto = async () => {
+    if (!imageFile) return;
+    setError(null);
+    setSuccess(null);
+    const fd = new FormData();
+    fd.append('image', imageFile);
+    try {
+      const up = await api.post('/user/profile/image', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (up.data?.profile_image) {
+        setUser((prev) => ({ ...prev, profile_image: up.data.profile_image }));
+        setImageFile(null);
+        setPreviewUrl(null);
+        setSuccess('Profile photo updated');
+      }
+    } catch (err) {
+      console.error('save photo failed', err);
+      setError('Failed to upload profile photo');
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.delete('/user/profile/image');
+      // fall back to initials
+      setUser((prev) => ({
+        ...prev,
+        profile_image: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          prev.full_name || ''
+        )}&background=random&color=fff&rounded=true`,
+      }));
+      setImageFile(null);
+      setPreviewUrl(null);
+      setSuccess('Profile photo removed');
+    } catch (err) {
+      console.error('remove photo failed', err);
+      setError('Failed to remove profile photo');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -94,8 +157,20 @@ export default function Settings() {
     }
   };
 
+  if (loading)
+    return (
+      <div style={{ textAlign: 'center', marginTop: '50px' }}>Loading...</div>
+    );
+  if (!user)
+    return (
+      <div style={{ textAlign: 'center', marginTop: '50px', color: 'red' }}>
+        Failed to load user profile. Please log in again or check your
+        connection.
+      </div>
+    );
+
   return (
-    <div className="min-h-screen bg-transparent font-sans pb-10">
+    <div className="min-h-screen bg-transparent font-sans pb-10 route-transition">
       <Header title="Settings" />
 
       <div className="settings-page">
@@ -205,10 +280,24 @@ export default function Settings() {
           <main className="center-panel">
             <div className="center-card">
               <div className="center-header">
-                <button className="back-btn" onClick={() => navigate(-1)}>
-                  &lt; Back
+                <button
+                  className="card-back"
+                  onClick={() => {
+                    try {
+                      navigate('/home');
+                    } catch (e) {
+                      navigate('/home');
+                    }
+                  }}
+                >
+                  ← Back
                 </button>
-                <h2>Account Settings</h2>
+                <div className="center-header-titles">
+                  <h2>Account Settings</h2>
+                  <p className="center-subtitle">
+                    Manage your Batanai profile and security
+                  </p>
+                </div>
               </div>
 
               <div className="account-grid two-col">
@@ -216,8 +305,58 @@ export default function Settings() {
                 <div className="left-cell">
                   <div className="section-heading">Profile</div>
                   <div className="avatar-block">
-                    <div className="avatar">MG</div>
-                    <button className="change-photo">Change Photo</button>
+                    {previewUrl ? (
+                      <div className="avatar">
+                        <img src={previewUrl} alt="Preview" />
+                      </div>
+                    ) : user?.profile_image ? (
+                      <div className="avatar">
+                        <img src={user.profile_image} alt="Profile" />
+                      </div>
+                    ) : (
+                      <div className="avatar">
+                        {(user?.full_name || 'U')
+                          .split(' ')
+                          .map((n) => n[0])
+                          .slice(0, 2)
+                          .join('')}
+                      </div>
+                    )}
+                    <div className="avatar-actions">
+                      <button
+                        className="change-photo"
+                        onClick={triggerFileSelect}
+                      >
+                        Change Photo
+                      </button>
+                      {imageFile && (
+                        <button
+                          className="save-photo-btn"
+                          type="button"
+                          onClick={handleSavePhoto}
+                        >
+                          Save photo
+                        </button>
+                      )}
+                      {user?.profile_image &&
+                        typeof user.profile_image === 'string' &&
+                        user.profile_image.includes('/uploads/') && (
+                          <button
+                            className="remove-photo-btn"
+                            type="button"
+                            onClick={handleRemovePhoto}
+                          >
+                            Remove photo
+                          </button>
+                        )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="right-cell">
@@ -325,10 +464,18 @@ export default function Settings() {
             <div className="dashboard-card">
               <h4>Dashboard (coming soon)</h4>
               <div className="dash-buttons">
-                <button>Looking For</button>
-                <button>Selling</button>
-                <button>Jobs/Opportunities</button>
-                <button>My Network</button>
+                <button disabled className="disabled-btn" type="button">
+                  Looking For
+                </button>
+                <button disabled className="disabled-btn" type="button">
+                  Selling
+                </button>
+                <button disabled className="disabled-btn" type="button">
+                  Jobs/Opportunities
+                </button>
+                <button type="button" onClick={() => navigate('/network')}>
+                  My Network
+                </button>
               </div>
             </div>
           </aside>

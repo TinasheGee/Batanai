@@ -36,6 +36,7 @@ import AdminBusinesses from './pages/AdminBusinesses';
 import RequireAuth from './components/RequireAuth';
 import Footer from './components/Footer';
 import bgImage from './styles/images/Lucid_Origin_A_sleek_professional_world_map_vector_illustratio_2.jpg';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
         }}
       >
         <Router>
+          <ScrollToTop />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Navigate to="/login" />} />
